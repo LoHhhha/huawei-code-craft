@@ -12,9 +12,11 @@
 #define MOD1 998244353
 using namespace std;
 
+
 void init(){
 
 }
+
 
 void solve(ll& USELESS) {
     
@@ -37,3 +39,4 @@ int main() {
 	//}
 	return 0;
 }
+
