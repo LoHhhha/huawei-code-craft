@@ -1,6 +1,5 @@
-// #include<bits/stdc++.h>
-#include<iostream>
-#include<vector>
+#include<bits/stdc++.h>
+#include"things.h"
 using namespace std;
 
 using ll = long long;
@@ -18,36 +17,92 @@ using pii = pair<int, int>;
     using namespace DEBUG_;
 #endif
 
+#define RIGHT 	0
+#define LEFT 	1
+#define UP 		2
+#define DOWN 	3
 
-struct Robot {
-	int x, y;	// 机器人当前坐标
-	int goods;	// 0: 无货物 其他整数: 货物编号
-	int status;	// 0: 恢复状态 1: 正常运行状态
-};
+
 vector<Robot> robot(10);	// 机器人 vector
 
-
-struct Berth {
-	int x, y;			// 码头左上角坐标
-	int transport_time;	// 运输到虚拟点的时间
-	int loading_speed;	// 装载速度: 个/帧
-};
 vector<Berth> berth(10);	// 码头 vector
 
+map<int, Packet> packet;	// 货物
 
+vector<vector<int>> graph(200, vector<int>(200));	// 地图 vector
+
+vector<Boat> boat(5);	// 船 vector
+
+vector<vector<set<int>>> book(200, vector<set<int>>(200));	// 点被预定的情况
+
+int frame;	// 帧数
+
+int money;	// 当前金钱数
+
+// 初始化
 void init() {
+	// 地图初始化
+	auto f = [](char c) {
+		if (c == '#' || c == '*') return -1;	// 障碍或海洋
+		else if (c == '.') return 0;	// 空地
+		else if (c == 'B') return 1;	// 泊位
+		else if (c == 'A') return 3;	// 机器人
+		else return -100;				// 输入有误
+	};
+	for (int i=0;i<200;i++) {
+		for (int j=0;j<200;j++) {
+			graph[i][j] = f(cin.get());
+		}
+		cin.get();
+	}
 
+	// 泊位初始化
+	for (int i=0;i<10;i++) {
+		cin >> berth[i].x >> berth[i].y >> berth[i].transport_time >> berth[i].loading_speed;
+	}
+
+	int boat_capacity;	// 船的容量
+	cin >> boat_capacity;	
+	for(int i=0;i<5;i++) {
+		boat[i].id = i;
+		boat[i].load = 0;
+		boat[i].status = 2;
+		boat[i].berth_id = -1;
+		boat[i].capacity = boat_capacity;
+	}
+	string okk;
+	cin >> okk;
+
+	// 在这里写初始化代码
+
+	cout << "OK" << endl << flush;
+}
+
+// 获取帧输入
+void get_input() {
+	cin >> frame >> money;	// 获取帧数和金钱数
+	int goods_num;
+	cin >> goods_num;
+	
 }
 
 
+int get_and_set_a_path(int robot_id,int x,int y){
+	// point_hash, dict
+	queue<pair<int,int>>qu;
+	
+
+	return 0;
+}
+
 int main() {
+	OPTIO;
 	#ifdef DE_BUG
 		// 用 cerr 输出调试信息
 		OUTPUT = &std::cerr;
 		debug(1)
 	#endif
 
-	OPTIO;
 	init();
 
 	return 0;
