@@ -8,8 +8,12 @@ using pii = pair<int, int>;
 // #define int ll
 // #define endl "\n"	// 是否保留待定
 #define OPTIO std::ios::sync_with_stdio(0), std::cin.tie(0), std::cout.tie(0)
-#define INF 0x3f3f3f3f3f3f3f3f
-#define inf 0x3f3f3f3f
+#define LLONG_INF 0x3f3f3f3f3f3f3f3f
+#define INT_INF 0x3f3f3f3f
+#define GRAPH_SIZE 200
+#define ROBOT_NUM 10
+#define BERTH_NUM 10
+#define BOAT_NUM 5
 
 // #define DE_BUG
 #ifdef DE_BUG
@@ -23,20 +27,20 @@ using pii = pair<int, int>;
 #define DOWN 	3
 
 
-vector<Robot> robot(10);	// 机器人 vector
+vector<Robot> robot(ROBOT_NUM);	// 机器人 vector
 
-vector<Berth> berth(10);	// 码头 vector
+vector<Berth> berth(BERTH_NUM);	// 码头 vector
 
 int packet_id = 0;			// 当前最后一个货物id
 map<int, Packet> packet;	// 货物
 
-vector<vector<int>> graph(200, vector<int>(200));	// 地图 vector
+vector<vector<int>> graph(GRAPH_SIZE, vector<int>(GRAPH_SIZE));	// 地图 vector
 
-vector<Boat> boat(5);	// 船 vector
+vector<Boat> boat(BOAT_NUM);	// 船 vector
 
-vector<vector<set<int>>> book(200, vector<set<int>>(200));	// 点被预定的情况
+vector<vector<set<int>>> book(GRAPH_SIZE, vector<set<int>>(GRAPH_SIZE));	// 点被预定的情况
 
-int frame;	// 帧数
+int frame;	// 当前帧数
 
 int money;	// 当前金钱数
 
@@ -50,22 +54,22 @@ void init() {
 		else if (c == 'A') return 3;	// 机器人
 		else return -100;				// 输入有误
 	};
-	for (int i=0;i<200;i++) {
-		for (int j=0;j<200;j++) {
+	for (int i=0;i<GRAPH_SIZE;i++) {
+		for (int j=0;j<GRAPH_SIZE;j++) {
 			graph[i][j] = f(cin.get());
 		}
 		cin.get();
 	}
 
 	// 泊位初始化
-	for (int i=0;i<10;i++) {
+	for (int i=0;i<BERTH_NUM;i++) {
 		int id;
 		cin >> id >> berth[i].x >> berth[i].y >> berth[i].transport_time >> berth[i].loading_speed;
 	}
 
 	int boat_capacity;	// 船的容量
 	cin >> boat_capacity;	
-	for(int i=0;i<5;i++) {
+	for(int i=0;i<BOAT_NUM;i++) {
 		boat[i].load = 0;
 		boat[i].status = 2;
 		boat[i].berth_id = -1;
@@ -94,17 +98,21 @@ void get_input() {
 	}
 
 	// 机器人
-	for (int i=0;i<10;i++) {
+	for (int i=0;i<ROBOT_NUM;i++) {
 		int have_packet, x, y, robot_status;	// have_packet表示机器人是否有货物，Robot内packet_id表示货物id
 		cin >> have_packet >> x >> y >> robot_status;
 		// todo：packet_id待处理
+
+		graph[robot[i].x][robot[i].y] = 0;
+		graph[x][y] = 3;
+
 		robot[i].x = x;
 		robot[i].y = y;
 		robot[i].status = robot_status;
 	}
 
-	// 船
-	for (int i=0;i<5;i++) {
+	// 船      
+	for (int i=0;i<BOAT_NUM;i++) {
 		int boat_status, boat_target;
 		cin >> boat_status >> boat_target;
 		boat[i].status = boat_status;
@@ -116,12 +124,32 @@ void get_input() {
 }
 
 
-int get_and_set_a_path(int robot_id,int x,int y){
-	// point_hash, dict
-	queue<pair<int,int>>qu;
+int tmp_dict[GRAPH_SIZE][GRAPH_SIZE];
+pair<int,queue<int>> get_a_path(int robot_id,int x,int y){
+	for(int i=0;i<GRAPH_SIZE;i++){
+		for(int j=0;j<GRAPH_SIZE;j++){
+			tmp_dict[i][j]=INT_INF;
+		}
+	}
 	
+	Robot &current_robot=robot[robot_id];
+	int robot_current_x=current_robot.x,robot_current_y=current_robot.y;
+	tmp_dict[robot_current_x][robot_current_y]=frame;
 
-	return 0;
+	// point_hash, dict
+	auto cmp=[&](auto &p1,auto &p2){
+		return p1.second>p2.second;
+	};
+	priority_queue<pair<int,int>,vector<pair<int,int>>,decltype(cmp)>pq{cmp};
+
+	pq.push({robot_current_x*GRAPH_SIZE+robot_current_y,frame});
+
+	while(!pq.empty()){
+		auto &[point_hash,dict]=pq.top();
+		pq.pop();
+
+		
+	}
 }
 
 int main() {
