@@ -61,11 +61,12 @@
 * 货物`packet`
 
 	```c++
-	struct Packet{
-		int id;		// 货物id
-		int x,y;	// 货物位置
-		int value;	// 货物价值
-	};
+  struct Packet {
+    int id;			// 货物id
+    int x,y;		// 货物位置
+    int value;		// 货物价值
+    int timeout;	// 过期时间：帧
+  };
 	```
 
 * 货物信息`packet:vector<Packet>`
