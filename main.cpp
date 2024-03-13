@@ -147,8 +147,8 @@ pair<int,queue<int>> get_a_path(int robot_id,int x,int y){
 	while(!pq.empty()){
 		auto &[point_hash,dict]=pq.top();
 		pq.pop();
+		// 等待的上界：book第一个大于自己的数是s
 
-		
 	}
 }
 
