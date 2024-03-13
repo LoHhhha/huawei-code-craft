@@ -6,12 +6,12 @@ using ll = long long;
 using pii = pair<int, int>;
 
 // #define int ll
-#define endl "\n"	// 是否保留待定
+// #define endl "\n"	// 是否保留待定
 #define OPTIO std::ios::sync_with_stdio(0), std::cin.tie(0), std::cout.tie(0)
 #define INF 0x3f3f3f3f3f3f3f3f
 #define inf 0x3f3f3f3f
 
-#define DE_BUG
+// #define DE_BUG
 #ifdef DE_BUG
     #include "DEBUG.h"
     using namespace DEBUG_;
@@ -59,7 +59,8 @@ void init() {
 
 	// 泊位初始化
 	for (int i=0;i<10;i++) {
-		cin >> berth[i].x >> berth[i].y >> berth[i].transport_time >> berth[i].loading_speed;
+		int id;
+		cin >> id >> berth[i].x >> berth[i].y >> berth[i].transport_time >> berth[i].loading_speed;
 	}
 
 	int boat_capacity;	// 船的容量
@@ -75,7 +76,7 @@ void init() {
 
 	// 在这里写初始化代码
 
-	cout << "OK" << endl << flush;
+	cout << "OK" << endl;
 }
 
 // 获取帧输入
@@ -124,20 +125,25 @@ int get_and_set_a_path(int robot_id,int x,int y){
 }
 
 int main() {
-	OPTIO;
+	// OPTIO;
 	#ifdef DE_BUG
 		// 用 cerr 输出调试信息
 		OUTPUT = &std::cerr;
-		SEP = "\n";
+		// SEP = "\n";
 		NEWLINE = true;
 	#endif
 
 	init();		// 初始化
-	for (int i=0;i<1;i++) {
+	for (int i=1;i<=15000;i++) {
 		get_input();	// 获取帧输入
 		#ifdef DE_BUG
 			debug(packet, robot, boat, money, frame, berth)
 		#endif
+
+		// 测试
+		for(int i=0;i<10;i++)
+			cout << "move " << i << " " << rand() % 4 << endl;
+		cout << "OK" << endl;
 	}
 
 	return 0;

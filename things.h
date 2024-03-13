@@ -29,7 +29,7 @@ struct Packet {
 };
 
 struct Boat {
-    int status;         // 0：移动中，1：正常装货状态，2：泊位外等待状态
+    int status;         // 0：移动中，1：正常运行状态(装货/运输完成状态)，2：泊位外等待状态
     int berth_id;	    // 目标泊位id，值为-1时表示目标泊位为虚拟点
     int load;           // 目前装载数
     int capacity;  // 船的容量 *初赛固定
