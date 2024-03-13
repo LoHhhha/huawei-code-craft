@@ -1,8 +1,0 @@
-[
-{
-  "directory": "E:/Huawei/huawei-code-craft/build",
-  "command": "D:\\msys64\\mingw64\\bin\\g++.exe   -g -std=gnu++17 -o CMakeFiles\\main.dir\\main.cpp.obj -c E:\\Huawei\\huawei-code-craft\\main.cpp",
-  "file": "E:/Huawei/huawei-code-craft/main.cpp",
-  "output": "CMakeFiles/main.dir/main.cpp.obj"
-}
-]

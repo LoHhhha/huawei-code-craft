@@ -1,3 +1,0 @@
-E:/Huawei/huawei-code-craft/build/CMakeFiles/main.dir
-E:/Huawei/huawei-code-craft/build/CMakeFiles/edit_cache.dir
-E:/Huawei/huawei-code-craft/build/CMakeFiles/rebuild_cache.dir
