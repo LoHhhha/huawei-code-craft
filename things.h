@@ -271,6 +271,10 @@ bool Robot::set_and_book_a_path_to(int tx, int ty) {
 				int p_x = point_hash/GRAPH_SIZE, p_y = point_hash%GRAPH_SIZE;
 				book[p_x][p_y].erase(rframe+1);
 			}
+
+			// 定义无目标
+			this->target_berth_id=-1;
+			
 			return false;
 		}
 		
