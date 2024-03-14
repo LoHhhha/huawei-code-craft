@@ -101,7 +101,7 @@ ostream& operator<<(ostream& os, const Boat& boat) {
 }
 
 
-// 期望复杂度：1e6(4e4*4*9)
+// 期望复杂度：1e6(4e4*1e2)
 // 更新机器人shortest_dict
 void Robot::update_dict(){
 	for(int i=0;i<GRAPH_SIZE;i++){
@@ -181,7 +181,7 @@ void Robot::update_dict(){
 			// 下一帧有人占用单元格，尝试等待
 			auto tmp_it=book[next_x][next_y].find(tframe+1);
 			int pos_next_frame=INT_INF;
-			// 首先需要满足不越过边界，此操作最多校验9次
+			// 首先需要满足不越过边界，此操作最多校验1e2次
 			while(tmp_it!=book[next_x][next_y].end()&&tmp_it->first<bound){
 				if(check_if_can_go(point_x,point_y,next_x,next_y,tmp_it->first+1)){
 					pos_next_frame=tmp_it->first+1;
