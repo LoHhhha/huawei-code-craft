@@ -15,8 +15,8 @@ void init() {
 	auto f = [](char c) {
 		if (c == '#' || c == '*') return -1;	// 障碍或海洋
 		else if (c == '.') return 0;			// 空地
-		else if (c == 'B') return 1;			// 泊位
-		else if (c == 'A') return 3;			// 机器人
+		else if (c == 'B') return BERTH_BIT;	// 泊位
+		else if (c == 'A') return ROBOT_BIT;	// 机器人
 		else return -100;						// 输入有误
 	};
 	for (int i=0;i<GRAPH_SIZE;i++) {
@@ -68,8 +68,10 @@ void get_input() {
 		cin >> have_packet >> x >> y >> robot_status;
 		// todo：packet_id待处理
 
-		graph[robot[i].x][robot[i].y] = 0;
-		graph[x][y] = 3;
+		robot[i].id=i;
+
+		graph[robot[i].x][robot[i].y] ^= ROBOT_BIT;	// 机器人上一帧位置清空
+		graph[x][y] ^= ROBOT_BIT;					// 机器人当前帧位置标记
 
 		robot[i].x = x;
 		robot[i].y = y;
