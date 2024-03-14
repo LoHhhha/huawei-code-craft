@@ -25,11 +25,11 @@ using pii = pair<int, int>;
 #define GET_OP "get %d"				// 机器人取货指令 get id[0-9]
 #define PULL_OP "pull %d"			// 机器人放货指令 pull id[0-9]
 
-int dir[4][2] = {{0, 1},{0, -1},{-1, 0},{1, 0}};		// 移动方向，下标与机器人指令方向一致
+int dir[4][2] = {{0,1}, {0,-1}, {-1,0}, {1,0}};		// 移动方向，下标与机器人指令方向一致
 
 
 struct Robot {
-	int id;
+	int id;											// 机器人编号
 	int x, y;										// 机器人当前坐标
 	int status;										// 0: 恢复状态 1: 正常运行状态
 	int packet_id;									// -1: 无货物 其他整数: 货物编号
@@ -37,6 +37,9 @@ struct Robot {
 	int shortest_dict[GRAPH_SIZE][GRAPH_SIZE]{0};	// 最短路记录矩阵，与update_dict / get_dict_to / get_and_book_a_path_to一并使用
 	int sleep[GRAPH_SIZE][GRAPH_SIZE]{0};			// 最短路等待记录矩阵，描述的是【去】该格等待的时间，与update_dict / get_dict_to / get_and_book_a_path_to一并使用
 	stack<pii> path;								// 维护机器人路径{frame_to_go（出发时间）, point_hash}，go_to_next_point
+
+	Robot() = default;
+	Robot(int id, int x, int y, int status): id(id), x(x), y(y), status(status) {}
 
 	void update_dict();
 	int get_dict_to(int tx,int ty);
@@ -80,6 +83,9 @@ struct Boat {
     int berth_id;	    // 目标泊位id，值为-1时表示目标泊位为虚拟点
     int load;           // 目前装载数
     int capacity;  		// 船的容量 *初赛固定
+
+	Boat() = default;
+	Boat(int status, int berth_id, int load, int capacity): status(status), berth_id(berth_id), load(load), capacity(capacity) {}
 
 	friend ostream& operator<<(ostream& os, const Boat& boat);
 };
@@ -170,7 +176,7 @@ void Robot::update_dict() {
 	pq.push({robot_current_x*GRAPH_SIZE+robot_current_y, frame});
 
 	while (!pq.empty()) {
-		auto &[point_hash, tframe] = pq.top();
+		auto [point_hash, tframe] = pq.top();
 		pq.pop();
 
 		int point_x = point_hash/GRAPH_SIZE, point_y = point_hash%GRAPH_SIZE;
@@ -187,6 +193,7 @@ void Robot::update_dict() {
 			}
 
 			if(tframe+1<this->shortest_dict[next_x][next_y] && check_if_can_go(point_x, point_y, next_x, next_y, tframe)) {
+				this->shortest_dict[next_x][next_y] = tframe+1;
 				pq.push({next_x*GRAPH_SIZE+next_y, tframe+1});
 			}
 		}
@@ -284,7 +291,7 @@ bool Robot::set_and_book_a_path_to(int tx, int ty) {
 // 注意：当没有路径时，返回false
 bool Robot::go_to_next_point() {
 	if (this->path.empty()) {
-		fprintf(stderr,"#Warning: [%d]Robot::%d(%d,%d) do not have a target point.\n",frame,this->id,this->x,this->y);
+		fprintf(stderr,"#Warning: [%d]Robot::%d(%d,%d) do not have a target point.\n", frame, this->id, this->x, this->y);
 		return false;
 	}
 
@@ -293,14 +300,14 @@ bool Robot::go_to_next_point() {
 		int current_x = this->x, current_y = this->y;
 		int next_x = point_hash/GRAPH_SIZE, next_y = point_hash%GRAPH_SIZE;
 		bool isok = false;
-		for(int i=0;i<4;i++) {
-			auto &[dx,dy] = dir[i];
+		for (int i=0;i<4;i++) {
+			auto &[dx, dy] = dir[i];
 			if (current_x+dx==next_x && current_y+dy==next_y) {
 				printf(MOVE_OP, this->id, i);
-				isok=true;
+				isok = true;
 			}
 		}
-		if(!isok){
+		if (!isok) {
 			fprintf(stderr,"#Error: [%d]Robot::%d(%d,%d) fail to move.\n",frame,this->id,this->x,this->y);
 		}
 		this->path.pop();
