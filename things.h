@@ -44,6 +44,7 @@ struct Robot {
 	void update_dict();
 	int get_dict_to(int tx,int ty);
 	bool set_and_book_a_path_to(int tx,int ty);
+	void cancel_path_book();
 	bool go_to_next_point();
 
 	void get_packet();
@@ -145,6 +146,7 @@ void Robot::update_dict() {
 	int robot_current_x = this->x, robot_current_y = this->y;
 	this->shortest_dict[robot_current_x][robot_current_y] = frame;
 
+
 	auto check_if_can_go = [&](int current_x, int current_y, int next_x, int next_y, int tframe) {
 		// 判断是否碰墙/海/机器人
 		if (graph[next_x][next_y]==-1 || graph[next_x][next_y]&ROBOT_BIT) {
@@ -222,6 +224,7 @@ void Robot::update_dict() {
 				}
 			}
 			if (pos_next_frame < this->shortest_dict[next_x][next_y]) {
+				this->shortest_dict[next_x][next_y] = pos_next_frame;
 				pq.push({next_x*GRAPH_SIZE+next_y, pos_next_frame});
 				sleep[next_x][next_y] = pos_next_frame - tframe;
 			}
@@ -262,6 +265,7 @@ bool Robot::set_and_book_a_path_to(int tx, int ty) {
 
 			if (frame_arrive-this->sleep[current_x][current_y] == this->shortest_dict[pre_x][pre_y]) {
 				current_x = pre_x, current_y = pre_y;
+				frame_arrive = this->shortest_dict[pre_x][pre_y];
 				isok = true;
 				break;
 			}
@@ -270,14 +274,9 @@ bool Robot::set_and_book_a_path_to(int tx, int ty) {
 		// 理论上不可能到达该处
 		if (!isok) {
 			fprintf(stderr,"#Error: [%d]Robot::%d(%d,%d) fail to set path to (%d,%d).\n",frame,this->id,this->x,this->y,tx,ty);
-			// 清空book
-			while (!this->path.empty()) {
-				auto [rframe, point_hash] = this->path.top();
-				this->path.pop();
 
-				int p_x = point_hash/GRAPH_SIZE, p_y = point_hash%GRAPH_SIZE;
-				book[p_x][p_y].erase(rframe+1);
-			}
+			// 清空book
+			this->cancel_path_book();
 
 			// 定义无目标
 			this->target_berth_id=-1;
@@ -320,6 +319,16 @@ bool Robot::go_to_next_point() {
 	return true;
 }
 
+void Robot::cancel_path_book(){
+	while (!this->path.empty()) {
+		auto [rframe, point_hash] = this->path.top();
+		this->path.pop();
+
+		int p_x = point_hash/GRAPH_SIZE, p_y = point_hash%GRAPH_SIZE;
+		book[p_x][p_y].erase(rframe+1);
+	}
+}
+
 // 期望复杂度：1
 // 指示机器人拿起货物
 // 注意：没有考虑是否有货物，一帧内切勿使用多次，到达目的地可以马上取
@@ -335,3 +344,49 @@ void Robot::pull_packet(){
 }
 
 // ---------- end Robot方法实现 ----------
+
+
+
+pii go_to_which_berth[200][200];		// 场上每一个点去哪一个泊位{id, dict}
+bool use_berth[10]{0};
+
+void choose_five_berth(){
+	int berths_to_point_dict[200][200][10]{0};
+
+	for (int idx=0;idx<BERTH_NUM;idx++) {
+		for(int i=0;i<GRAPH_SIZE;i++){
+			for(int j=0;j<GRAPH_SIZE;j++){
+				berths_to_point_dict[i][j][idx] = INT_INF;
+			}
+		}
+		int x = berth[idx].x, y = berth[idx].y;
+
+		queue<int> qu;
+		qu.push((x)*GRAPH_SIZE+(y));
+		qu.push((x)*GRAPH_SIZE+(y+3));
+		qu.push((x+3)*GRAPH_SIZE+(y));
+		qu.push((x+3)*GRAPH_SIZE+(y+3));
+
+		int current_dict=0;
+		while (!qu.empty()) {
+			int qn = qu.size();
+			while (qn--) {
+				auto point_hash = qu.front();
+				qu.pop();
+				int current_x = point_hash/GRAPH_SIZE, current_y = point_hash%GRAPH_SIZE;
+				berths_to_point_dict[current_x][current_y][idx] = 0;
+				for(auto &[dx,dy]:dir){
+					int next_x = current_x+dx, next_y = current_y+dy;
+					if (next_x>=GRAPH_SIZE || next_y>=GRAPH_SIZE || next_x<0 || next_y<0) {
+						continue;
+					}
+					if(graph[next_x][next_y]!=-1&&berths_to_point_dict[next_x][next_y][idx]!=INT_INF){
+						qu.push(next_x*GRAPH_SIZE+next_y);
+					}
+				}
+			}
+			current_dict++;
+		}
+	}
+
+}

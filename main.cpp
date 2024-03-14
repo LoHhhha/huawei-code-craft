@@ -6,7 +6,6 @@ using namespace std;
 #ifdef DE_BUG
     #include "DEBUG.h"
     using namespace DEBUG_;
-
 	#define FRAME_CNT 1
 #else
 	#define FRAME_CNT 1500
@@ -53,6 +52,7 @@ void init() {
 	cin >> okk;
 
 	// 在这里写初始化代码
+	choose_five_berth();
 
 	cout << "OK" << endl;
 }
@@ -109,16 +109,18 @@ void solve() {
 	for (auto [id, pk]:packet) {
 		printf("货物id: %d, (%d, %d), %d\n", id, pk.x, pk.y, robot[0].get_dict_to(pk.x, pk.y));
 	}
-	// #ifdef DE_BUG
-	// 	OUTPUT = &std::cout;
-	// 	debug(robot[0].shortest_dict)
-	// #endif
 	auto pk = packet.begin()->second;
 	robot[0].set_and_book_a_path_to(pk.x, pk.y);
-	robot[0].go_to_next_point();
 	#ifdef DE_BUG
-		debug(robot[0], robot[0].path, robot[0].shortest_dict, robot[0].sleep)
+		OUTPUT = &std::cout;
+		debug(robot[0].path)
 	#endif
+	robot[0].go_to_next_point();
+
+
+	// #ifdef DE_BUG
+	// 	debug(robot[0], robot[0].path, robot[0].shortest_dict, robot[0].sleep)
+	// #endif
 }
 
 int main() {
