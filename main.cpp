@@ -1,6 +1,4 @@
-#include<bits/stdc++.h>
-#include"things.h"
-using namespace std;
+#include "util_function.h"
 
 #define DE_BUG
 #ifdef DE_BUG
@@ -8,7 +6,7 @@ using namespace std;
     using namespace DEBUG_;
 	#define FRAME_CNT 1
 #else
-	#define FRAME_CNT 1500
+	#define FRAME_CNT 15000
 #endif
 
 #define DEBUG_STATE 1	// 0：关闭，1：终端，2：cph
