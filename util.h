@@ -23,9 +23,6 @@ using pii = pair<int, int>;
 #define ROBOT_BIT 	2	// 机器人标记
 #define PACKET_BIT 	4	// 货物标记
 
-#define MOVE_OP "move %d %d"		// 机器人移动指令 move id[0-9] dir[0-3]
-#define GET_OP "get %d"				// 机器人取货指令 get id[0-9]
-#define PULL_OP "pull %d"			// 机器人放货指令 pull id[0-9]
 
 int dir[4][2] = {{0,1}, {0,-1}, {-1,0}, {1,0}};		// 移动方向，下标与机器人指令方向一致
 
@@ -38,5 +35,6 @@ int frame;	// 当前帧数
 int money;	// 当前金钱数
 
 
-pii go_to_which_berth[GRAPH_SIZE][GRAPH_SIZE];		// 场上每一个点去哪一个泊位{id, dict}
+pii go_to_which_berth[GRAPH_SIZE][GRAPH_SIZE];		// 场上每一个点去哪一个泊位{id, dict} 注意：当id==-1或者dict==INT_INF时不可达！
 bool use_berth[BERTH_NUM]{0};		// 泊位是否被使用
+

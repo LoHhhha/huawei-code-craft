@@ -5,9 +5,14 @@
 #include "Berth.hpp"
 
 // ---------- begin init ----------
+
+// 期望复杂度：1e7(4e4*(BERTH_NUM choose num=10C5=210)) 
+// 选择num个泊位、预处理每一点到最近港口及其距离
+// 港口选择优先级：距离短者优先、泊位速度快者优先
 void choose_best_berth(int num){
 	int berths_to_point_dict[GRAPH_SIZE][GRAPH_SIZE][BERTH_NUM]{0};
 
+	// 维护出每一个泊位到每个点的最短距离
 	for (int idx=0;idx<BERTH_NUM;idx++) {
 		for(int i=0;i<GRAPH_SIZE;i++){
 			for(int j=0;j<GRAPH_SIZE;j++){
@@ -46,8 +51,10 @@ void choose_best_berth(int num){
 
 	bool current_use_berth[BERTH_NUM]{0};
 	ll best_reachable_point=0,best_tol_point_dict=LLONG_INF;
+
+	// 检查当前子集是否是最优的
 	auto check=[&](){
-		ll tol_dict=0,reachable_point=0;
+		ll tol_point_dict=0,reachable_point=0;
 		for(int i=0;i<GRAPH_SIZE;i++){
 			for(int j=0;j<GRAPH_SIZE;j++){
 				if(graph[i][j]!=-1){
@@ -62,16 +69,20 @@ void choose_best_berth(int num){
 					if(berths_to_point_dict[i][j][min_dict_berth_id]!=INT_INF){
 						reachable_point++;
 					}
-					tol_dict+=berths_to_point_dict[i][j][min_dict_berth_id];
+					tol_point_dict+=berths_to_point_dict[i][j][min_dict_berth_id];
 				}
 			}
 		}
-		if(best_reachable_point<reachable_point){
+		if(best_reachable_point<reachable_point||(best_reachable_point==reachable_point&&best_tol_point_dict>tol_point_dict)){
 			best_reachable_point=reachable_point;
-			best_tol_point_dict=tol_dict;
+			best_tol_point_dict=tol_point_dict;
+			for(int i=0;i<BERTH_NUM;i++){
+				use_berth[i]=current_use_berth[i];
+			}
 		}
 	};
-
+	
+	// 枚举BERTH_NUM中选num个泊位的情况，逐个验证是否最优
 	function<void(int,int)>choose=[&](int idx,int need){
 		if(need==0){
 			check();
@@ -86,6 +97,32 @@ void choose_best_berth(int num){
 		current_use_berth[idx]=false;
 	};
 	choose(0,num);
+
+	// 维护go_to_which_berth
+	for(int i=0;i<GRAPH_SIZE;i++){
+		for(int j=0;j<GRAPH_SIZE;j++){
+			go_to_which_berth[i][j].first=-1;
+			go_to_which_berth[i][j].second=INT_INF;
+		}
+	}
+	for(int i=0;i<GRAPH_SIZE;i++){
+		for(int j=0;j<GRAPH_SIZE;j++){
+			for(int idx=0;idx<BERTH_NUM;idx++){
+				if(use_berth[idx]&&berths_to_point_dict[i][j][idx]!=INT_INF){
+					if(
+						go_to_which_berth[i][j].first==-1||
+						go_to_which_berth[i][j].second>berths_to_point_dict[i][j][idx]||(
+							go_to_which_berth[i][j].second==berths_to_point_dict[i][j][idx]&&
+							berth[idx].loading_speed>berth[go_to_which_berth[i][j].first].loading_speed
+						)
+					){
+						go_to_which_berth[i][j].first=idx;
+						go_to_which_berth[i][j].second=berths_to_point_dict[i][j][idx];
+					}
+				}
+			}
+		}
+	}
 }
 
 // ---------- end init ----------

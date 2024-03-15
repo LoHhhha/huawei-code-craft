@@ -2,6 +2,11 @@
 
 #include "util.h"
 
+#define MOVE_OP "move %d %d"		// 机器人移动指令 move id[0-9] dir[0-3]
+#define GET_OP "get %d"				// 机器人取货指令 get id[0-9]
+#define PULL_OP "pull %d"			// 机器人放货指令 pull id[0-9]
+
+
 struct Robot {
 	int id;											// 机器人编号
 	int x, y;										// 机器人当前坐标
@@ -13,7 +18,7 @@ struct Robot {
 	stack<pii> path;								// 维护机器人路径{frame_to_go（出发时间）, point_hash}，go_to_next_point
 
 	Robot() = default;
-	Robot(int id, int x, int y, int status): id(id), x(x), y(y), status(status) {}
+	Robot(int id, int x, int y, int status): id(id), x(x), y(y), status(status), target_berth_id(-1) {}
 
 	void update_dict();
 	int get_dict_to(int tx,int ty);

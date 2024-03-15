@@ -12,12 +12,12 @@ struct Packet {
 	Packet() = default;
 	Packet(int _id, int _x, int _y, int _value, int _timeout) : id(_id), x(_x), y(_y), value(_value), timeout(_timeout) {}
 	
-	void broadcast();
+	bool broadcast();
 
 	friend ostream& operator<<(ostream& os, const Packet& packet);
 };
 int packet_id = -1;			// 当前最后一个货物id
-map<int, Packet> packet;	// 货物
+map<int, pair<Packet, int>> packet;	// 货物id -> {货物信息, 是否被机器人拿着/即将去取}
 
 // ---------- begin 重载输出流 ----------
 ostream& operator<<(ostream& os, const Packet& packet) {
@@ -30,14 +30,16 @@ ostream& operator<<(ostream& os, const Packet& packet) {
 
 // ---------- begin Packet方法实现 ----------
 
-// 每当有货物生成时调用该方法，向附近最合适的机器人广播货物信息
-void Packet::broadcast() {
+// 每当有货物生成时调用该方法，向附近最合适的 *一个或0个* 机器人广播货物信息
+bool Packet::broadcast() {
 	queue<int> qu;	// point_hash
 	qu.push(this->x*GRAPH_SIZE+this->y);
 
 	int step = 0;
 	bool isok = false;
+	
 	while (!qu.empty()) {
+
 		int qn = qu.size();
 		while (qn--) {
 			auto point_hash = qu.front(); qu.pop();
@@ -73,18 +75,37 @@ void Packet::broadcast() {
 						// !正常不会出现
 						if (!can_arrive) {
 							fprintf(stderr,"#Error: [%d]Packet::%d(%d,%d) fail to set path to (%d,%d).\n",frame,this->id,this->x,this->y,rb.x,rb.y);
+							return false;
 						}
+
+						packet[this->id].second = 1;	// 已被预定
 						isok = true;
 						break;
 					} else if (rb.packet_id == -1) {	// 有将要取的物品，已经规划好了路径，判断是否将货物重新分配给他
+						auto &[origin_packet, flag] = packet[rb.packet_id];
 						int val1 = this->value;	// 当前货物价值
-						int val2 = packet[rb.packet_id].value;	// 将要取的货物价值
+						int val2 = origin_packet.value;	// 将要取的货物价值
 						int t1 = rb.get_dict_to(this->x, this->y) - frame;	// 机器人到达当前货物所需时间
-						int t2 = rb.get_dict_to(packet[rb.packet_id].x, packet[rb.packet_id].y) - frame;	// 机器人到原货物所需时间）
+						int t2 = rb.get_dict_to(origin_packet.x, origin_packet.y) - frame;	// 机器人到原货物所需时间）
 						t1 += go_to_which_berth[this->x][this->y].second;	// 当前货物到达泊位所需时间
-						t2 += go_to_which_berth[packet[rb.packet_id].x][packet[rb.packet_id].y].second;	// 原货物到达泊位所需时间
+						t2 += go_to_which_berth[origin_packet.x][origin_packet.y].second;	// 原货物到达泊位所需时间
 
-						// todo: 待判断是否选取当前货物
+						auto calc = [](int val, int t) { return double(val)/(t+1); };	// 计算性价比
+						if (calc(val1, t1) / calc(val2, t2) >= 1.15) {	// 换货物的性价比大于一定比例
+							rb.packet_id = this->id;
+							rb.target_berth_id = -1;
+							rb.cancel_path_book();	// 取消原路径
+							rb.update_dict();	// 更新最短路径
+							bool can_arrive = rb.set_and_book_a_path_to(this->x, this->y);	// 设置路径
+							// !正常不会出现
+							if (!can_arrive) {
+								fprintf(stderr,"#Error: [%d]Packet::%d(%d,%d) fail to set path to (%d,%d).\n",frame,this->id,this->x,this->y,rb.x,rb.y);
+							}
+
+							packet[this->id].second = 1;	// 已被预定
+							isok = true;
+							break;
+						}
 					}
 				}
 				qu.push(next_x*GRAPH_SIZE+next_y);
@@ -98,6 +119,7 @@ void Packet::broadcast() {
 		}
 		step++;
 	}
+	return isok;	// 是否成功分配
 }
 
 

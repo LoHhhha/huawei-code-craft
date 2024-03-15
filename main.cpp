@@ -43,8 +43,8 @@ void init() {
 
 	int boat_capacity;	// 船的容量
 	cin >> boat_capacity;	
-	for(int i=0;i<BOAT_NUM;i++) {
-		boat[i] = Boat(1, -1, 0, boat_capacity);
+	for(int boat_id=0;boat_id<BOAT_NUM;boat_id++) {
+		boat[boat_id] = Boat(boat_id, 1, -1, 0, boat_capacity);
 	}
 	string okk;
 	cin >> okk;
@@ -55,8 +55,8 @@ void init() {
 	cout << "OK" << endl;
 }
 
-// 获取帧输入
-void get_input() {
+// 获取帧输入，返回当前帧新生成多少个货物
+int get_input() {
 	cin >> frame >> money;	// 获取帧数和金钱数
 
 	// 货物
@@ -78,8 +78,6 @@ void get_input() {
 			robot[i].packet_id = -1;
 		}
 
-		robot[i].id=i;
-
 		graph[robot[i].x][robot[i].y] ^= ROBOT_BIT;	// 机器人上一帧位置清空
 		graph[x][y] ^= ROBOT_BIT;					// 机器人当前帧位置标记
 
@@ -98,10 +96,12 @@ void get_input() {
 
 	string okk;
 	cin >> okk;
+
+	return goods_num;
 }
 
 // 处理每一帧
-void solve() {
+void solve_test() {
 	get_input();	// 获取帧输入
 	robot[0].update_dict();
 	for (auto [id, pk]:packet) {
@@ -119,6 +119,11 @@ void solve() {
 	// #ifdef DE_BUG
 	// 	debug(robot[0], robot[0].path, robot[0].shortest_dict, robot[0].sleep)
 	// #endif
+}
+
+// 处理每一帧
+void solve() {
+	int goods_num = get_input();	// 获取帧输入
 }
 
 int main() {
