@@ -52,7 +52,7 @@ void init() {
 	cin >> okk;
 
 	// 在这里写初始化代码
-	choose_five_berth();
+	choose_best_berth(5);
 
 	cout << "OK" << endl;
 }

@@ -347,11 +347,11 @@ void Robot::pull_packet(){
 
 
 
-pii go_to_which_berth[200][200];		// 场上每一个点去哪一个泊位{id, dict}
-bool use_berth[10]{0};
+pii go_to_which_berth[GRAPH_SIZE][GRAPH_SIZE];		// 场上每一个点去哪一个泊位{id, dict}
+bool use_berth[BERTH_NUM]{0};
 
-void choose_five_berth(){
-	int berths_to_point_dict[200][200][10]{0};
+void choose_best_berth(int num){
+	int berths_to_point_dict[GRAPH_SIZE][GRAPH_SIZE][BERTH_NUM]{0};
 
 	for (int idx=0;idx<BERTH_NUM;idx++) {
 		for(int i=0;i<GRAPH_SIZE;i++){
@@ -389,4 +389,46 @@ void choose_five_berth(){
 		}
 	}
 
+	bool current_use_berth[BERTH_NUM]{0};
+	ll best_reachable_point=0,best_tol_point_dict=LLONG_INF;
+	auto check=[&](){
+		ll tol_dict=0,reachable_point=0;
+		for(int i=0;i<GRAPH_SIZE;i++){
+			for(int j=0;j<GRAPH_SIZE;j++){
+				if(graph[i][j]!=-1){
+					int min_dict_berth_id=-1;
+					for(int idx=0;idx<BERTH_NUM;idx++){
+						if(current_use_berth[idx]){
+							if(min_dict_berth_id==-1||berths_to_point_dict[i][j][idx]<berths_to_point_dict[i][j][min_dict_berth_id]){
+								min_dict_berth_id=idx;
+							}
+						}
+					}
+					if(berths_to_point_dict[i][j][min_dict_berth_id]!=INT_INF){
+						reachable_point++;
+					}
+					tol_dict+=berths_to_point_dict[i][j][min_dict_berth_id];
+				}
+			}
+		}
+		if(best_reachable_point<reachable_point){
+			best_reachable_point=reachable_point;
+			best_tol_point_dict=tol_dict;
+		}
+	};
+
+	function<void(int,int)>choose=[&](int idx,int need){
+		if(need==0){
+			check();
+			return;
+		}
+		if(idx==BERTH_NUM||BERTH_NUM-idx+1<need){
+			return;
+		}
+		choose(idx+1,need);
+		current_use_berth[idx]=true;
+		choose(idx+1,need-1);
+		current_use_berth[idx]=false;
+	};
+	choose(0,num);
 }
