@@ -28,13 +28,6 @@ struct Msg{
     // 事件序号
     int event;
 
-    bool operator() (Msg &other) const{
-        if(this->frame==other.frame){
-            return this->event>other.event;
-        }
-        return this->frame>other.frame;
-    }
-
     bool operator< (const Msg &other) const {
         if(this->frame == other.frame){
             return this->event > other.event;
