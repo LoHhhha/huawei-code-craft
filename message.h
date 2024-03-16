@@ -34,6 +34,14 @@ struct Msg{
         }
         return this->frame>other.frame;
     }
+
+    bool operator< (const Msg &other) const {
+        if(this->frame == other.frame){
+            return this->event > other.event;
+        }
+        return this->frame > other.frame;
+    }
+
 public:
     Msg(int frame,int obj_id,int event): frame(frame), obj_id(obj_id), event(event){};
 };
@@ -133,6 +141,7 @@ bool MsgHandler::check_and_do(){
                 frame, msg.frame, msg.obj_id, msg.event);
         }
     }
+    return true;
 }
 
 // 期望复杂度：1

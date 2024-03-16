@@ -123,14 +123,22 @@ void solve_test() {
 }
 
 // 处理每一帧
-void solve() {
-	
+void solve_test_Packet_broadcast() {
 	int goods_num = get_input();	// 获取帧输入
+	// auto pk = packet.begin()->second;
+	// bool flag = pk.broadcast();
+	for (auto &[id, pk]:packet) {
+		pk.broadcast(); 
+	}
+	#ifdef DE_BUG
+		debug(packet, robot)
+	#endif
 }
 
 int main() {
 	#ifdef DE_BUG
-		// NEWLINE = true;
+		// SEP = "\n"	// 输出分隔符，默认为"  "，不会作用于容器内的对象
+		NEWLINE = true;	// 是否换行，会作用于容器内的对象，覆盖SEP
 	#endif
 	#if (DEBUG_STATE == 1)
 		freopen("judge_output.txt", "r", stdin);
@@ -139,7 +147,7 @@ int main() {
 
 	init();		// 初始化
 	for (int i=1;i<=FRAME_TO_RUN;i++) {
-		solve();
+		solve_test_Packet_broadcast();
 	}
 
 	return 0;

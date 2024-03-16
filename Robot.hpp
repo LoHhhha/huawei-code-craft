@@ -13,12 +13,13 @@ struct Robot {
 	int status;										// 0: 恢复状态 1: 正常运行状态
 	int packet_id;									// -1: 无货物 其他整数: 货物编号
 	int target_berth_id;							// -1：无目的泊位 其他整数: 泊位编号
+	int target_packet_id;							// -1：无目的货物 其他整数: 货物编号
 	int shortest_dict[GRAPH_SIZE][GRAPH_SIZE]{0};	// 最短路记录矩阵，与update_dict / get_dict_to / get_and_book_a_path_to一并使用
 	int sleep[GRAPH_SIZE][GRAPH_SIZE]{0};			// 最短路等待记录矩阵，描述的是【去】该格等待的时间，与update_dict / get_dict_to / get_and_book_a_path_to一并使用
 	stack<pii> path;								// 维护机器人路径{frame_to_go（出发时间）, point_hash}，go_to_next_point
 
 	Robot() = default;
-	Robot(int id, int x, int y, int status): id(id), x(x), y(y), status(status), target_berth_id(-1) {}
+	Robot(int id, int x, int y, int status): id(id), x(x), y(y), status(status), target_berth_id(-1), target_packet_id(-1) {}
 
 	void update_dict();
 	int get_dict_to(int tx,int ty);
@@ -35,9 +36,9 @@ vector<Robot> robot(ROBOT_NUM);	// 机器人 vector
 
 // ---------- begin 重载输出流 ----------
 ostream& operator<<(ostream& os, const Robot& rb) {
-	os << "机器人" << rb.id << ": 坐标(" << rb.x << ", " << rb.y << "), 货物id: ";
+	os << "机器人" << rb.id << ": 坐标(" << rb.x << ", " << rb.y << "), 正在拿的货物id: ";
 	os << rb.packet_id << ", 运行状态: " << rb.status;
-	os << ", 目标货物id: " << rb.target_berth_id;
+	os << ", 目标货物id: " << rb.target_packet_id;
 	os << ", 目标泊位id: " << rb.target_berth_id;
 	return os;
 }

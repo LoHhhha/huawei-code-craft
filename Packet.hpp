@@ -8,7 +8,7 @@ struct Packet {
 	int x, y;		// 货物位置
 	int value;		// 货物价值
 	int timeout;	// 过期时间：帧
-	int status;		// 货物状态：0-未被预定，1-已被预定
+	int status;		// 货物状态：-1：未被预定，其他数字x：已被机器人x预定
 
 	Packet() = default;
 	Packet(int _id, int _x, int _y, int _value, int _timeout) : id(_id), x(_x), y(_y), value(_value), timeout(_timeout) {}
@@ -17,13 +17,14 @@ struct Packet {
 
 	friend ostream& operator<<(ostream& os, const Packet& packet);
 };
-int packet_id = -1;			// 当前最后一个货物id
+int packet_id = 0;			// 当前最后一个货物id
 map<int, Packet> packet;	// 货物id -> 货物信息
 
 // ---------- begin 重载输出流 ----------
 ostream& operator<<(ostream& os, const Packet& packet) {
 	os << "货物: id: " << packet.id << ", 坐标(" << packet.x << ", " << packet.y << "), ";
 	os << "价值: " << packet.value << ", 过期帧: " << packet.timeout;
+	os << ", 状态: " << packet.status;
 	return os;
 }
 // ---------- end 重载输出流 ----------
@@ -33,8 +34,10 @@ ostream& operator<<(ostream& os, const Packet& packet) {
 
 // 每当有货物生成时调用该方法，向附近最合适的 *一个或0个* 机器人广播货物信息
 bool Packet::broadcast() {
-	queue<int> qu;	// point_hash
-	qu.push(this->x*GRAPH_SIZE+this->y);
+	queue<pair<int, int>> qu;	// point
+	qu.push({x, y});
+	vector<vector<int>> vis(GRAPH_SIZE, vector<int>(GRAPH_SIZE, 0));
+	vis[x][y] = 1;
 
 	int step = 0;
 	bool isok = false;
@@ -43,12 +46,12 @@ bool Packet::broadcast() {
 
 		int qn = qu.size();
 		while (qn--) {
-			auto point_hash = qu.front(); qu.pop();
+			auto [current_x, current_y] = qu.front(); qu.pop();
 			
-			int current_x = point_hash/GRAPH_SIZE, current_y = point_hash%GRAPH_SIZE;
+			// int current_x = point_hash/GRAPH_SIZE, current_y = point_hash%GRAPH_SIZE;
 			for (auto &[tx, ty]:dir) {
 				int next_x = current_x+tx, next_y = current_y+ty;
-				if (next_x>=GRAPH_SIZE || next_y>=GRAPH_SIZE || next_x<0 || next_y<0) {	// 越界
+				if (next_x>=GRAPH_SIZE || next_y>=GRAPH_SIZE || next_x<0 || next_y<0 || vis[next_x][next_y]) {	// 越界或已访问
 					continue;
 				}
 				if (graph[next_x][next_y] == -1) {	// 障碍
@@ -59,17 +62,20 @@ bool Packet::broadcast() {
 					break;
 				}
 				if (graph[next_x][next_y] & ROBOT_BIT) {	// 机器人
-					auto &rb = robot[0];
+					auto rb_id = 0;
 					for (auto &it:robot) {	// 找到对应机器人
 						if (it.x == next_x && it.y == next_y) {
-							rb = it;
+							rb_id = it.id;
+							break;
 						}
 					}
+					auto &rb = robot[rb_id];
 					if (rb.status == 0) {	// 机器人处于恢复状态
 						continue;
 					}
 					if (rb.packet_id == -1 && rb.path.empty()) {	// 没有要取的物品，直接把货物分配给该机器人
-						rb.packet_id = this->id;
+						this->status = rb.id;
+						rb.target_packet_id = this->id;
 						rb.target_berth_id = -1;
 						rb.update_dict();	// 更新最短路径
 						bool can_arrive = rb.set_and_book_a_path_to(this->x, this->y);	// 设置路径
@@ -93,7 +99,9 @@ bool Packet::broadcast() {
 
 						auto calc = [](int val, int t) { return double(val)/(t+1); };	// 计算性价比
 						if (calc(val1, t1) / calc(val2, t2) >= 1.15) {	// 换货物的性价比大于一定比例
-							rb.packet_id = this->id;
+							this->status = rb.id;
+							origin_packet.status = -1;
+							rb.target_packet_id = this->id;
 							rb.target_berth_id = -1;
 							rb.cancel_path_book();	// 取消原路径
 							rb.update_dict();	// 更新最短路径
@@ -109,7 +117,8 @@ bool Packet::broadcast() {
 						}
 					}
 				}
-				qu.push(next_x*GRAPH_SIZE+next_y);
+				vis[next_x][next_y] = 1;
+				qu.push({next_x, next_y});
 			}
 			if (isok) {
 				break;
