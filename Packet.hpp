@@ -8,6 +8,7 @@ struct Packet {
 	int x, y;		// 货物位置
 	int value;		// 货物价值
 	int timeout;	// 过期时间：帧
+	int status;		// 货物状态：0-未被预定，1-已被预定
 
 	Packet() = default;
 	Packet(int _id, int _x, int _y, int _value, int _timeout) : id(_id), x(_x), y(_y), value(_value), timeout(_timeout) {}
@@ -17,7 +18,7 @@ struct Packet {
 	friend ostream& operator<<(ostream& os, const Packet& packet);
 };
 int packet_id = -1;			// 当前最后一个货物id
-map<int, pair<Packet, int>> packet;	// 货物id -> {货物信息, 是否被机器人拿着/即将去取}
+map<int, Packet> packet;	// 货物id -> 货物信息
 
 // ---------- begin 重载输出流 ----------
 ostream& operator<<(ostream& os, const Packet& packet) {
@@ -78,11 +79,11 @@ bool Packet::broadcast() {
 							return false;
 						}
 
-						packet[this->id].second = 1;	// 已被预定
+						packet[this->id].status = 1;	// 已被预定
 						isok = true;
 						break;
 					} else if (rb.packet_id == -1) {	// 有将要取的物品，已经规划好了路径，判断是否将货物重新分配给他
-						auto &[origin_packet, flag] = packet[rb.packet_id];
+						auto origin_packet = packet[rb.packet_id];
 						int val1 = this->value;	// 当前货物价值
 						int val2 = origin_packet.value;	// 将要取的货物价值
 						int t1 = rb.get_dict_to(this->x, this->y) - frame;	// 机器人到达当前货物所需时间
@@ -102,7 +103,7 @@ bool Packet::broadcast() {
 								fprintf(stderr,"#Error: [%d]Packet::%d(%d,%d) fail to set path to (%d,%d).\n",frame,this->id,this->x,this->y,rb.x,rb.y);
 							}
 
-							packet[this->id].second = 1;	// 已被预定
+							packet[this->id].status = 1;	// 已被预定
 							isok = true;
 							break;
 						}

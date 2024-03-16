@@ -4,9 +4,9 @@
 #ifdef DE_BUG
     #include "DEBUG.h"
     using namespace DEBUG_;
-	#define FRAME_CNT 1
+	#define FRAME_TO_RUN 1
 #else
-	#define FRAME_CNT 15000
+	#define FRAME_TO_RUN FRAME_COUNT
 #endif
 
 #define DEBUG_STATE 1	// 0：关闭，1：终端，2：cph
@@ -50,7 +50,8 @@ void init() {
 	cin >> okk;
 
 	// 在这里写初始化代码
-	choose_best_berth(5);
+	get_robot_can_go();
+	choose_best_berth(min(BOAT_NUM,BERTH_NUM));
 
 	cout << "OK" << endl;
 }
@@ -65,7 +66,7 @@ int get_input() {
 	for (int i=0;i<goods_num;i++) {
 		int x, y, packet_money;
 		cin >> x >> y >> packet_money;
-		Packet p(++packet_id, x, y, packet_money, frame + 1000);	// 在 1000 帧后过期
+		Packet p(++packet_id, x, y, packet_money, frame + PACKET_TIME_OUT);	// 在 1000 帧后过期
 		packet[packet_id] = p;
 	}
 
@@ -123,6 +124,7 @@ void solve_test() {
 
 // 处理每一帧
 void solve() {
+	
 	int goods_num = get_input();	// 获取帧输入
 }
 
@@ -136,7 +138,7 @@ int main() {
 	#endif
 
 	init();		// 初始化
-	for (int i=1;i<=FRAME_CNT;i++) {
+	for (int i=1;i<=FRAME_TO_RUN;i++) {
 		solve();
 	}
 

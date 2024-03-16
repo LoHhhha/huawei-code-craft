@@ -4,22 +4,20 @@
 #include"robot.hpp"
 #include"boat.hpp"
 
-// 处理事件：
-// 1. 船到达虚拟点
-// 2. 机器人到达货物
-// 3. 机器人到达泊位
-// 4. ...
-
-
+// 已支持处理事件：
 // 与Msg事件序号对应
 // 根据事件来完成对obj的分类
 // 约定：0-99分配给机器人，100-199分配给船
 // 0：机器人到达取货点 -> 取货操作
 // 1：机器人到达泊位 -> 放货操作
 // 100：船已到达虚拟点 -> 返航
+// 101：船出发到虚拟点 -> 出发
+
 #define MSG_ROBOT_NEED_GET 0
 #define MSG_ROBOT_NEED_PULL 1
 #define MSG_BOAT_NEED_BACK 100
+#define MSG_BOAT_NEED_GO 101
+
 
 
 struct Msg{
@@ -36,7 +34,7 @@ struct Msg{
         }
         return this->frame>other.frame;
     }
-
+public:
     Msg(int frame,int obj_id,int event): frame(frame), obj_id(obj_id), event(event){};
 };
 
@@ -60,21 +58,49 @@ MsgHandler::MsgHandler(){
 
     // MSG_ROBOT_NEED_GET： 机器人取货
     auto robot_get=[&](Msg msg){
+        if(msg.obj_id<0||msg.obj_id>=ROBOT_NUM){
+            fprintf(stderr, "#Error: [%d]MsgHandler:: msg(frame:%d, obj_id:%d, event:%d) fail to execute.\n",
+                frame, msg.frame, msg.obj_id, msg.event);
+            return;
+        }
         robot[msg.obj_id].get_packet();
     };
     f[MSG_ROBOT_NEED_GET]=robot_get;
 
     // MSG_ROBOT_NEED_PULL： 机器人放货
     auto robot_pull=[&](Msg msg){
+        if(msg.obj_id<0||msg.obj_id>=ROBOT_NUM){
+            fprintf(stderr, "#Error: [%d]MsgHandler:: msg(frame:%d, obj_id:%d, event:%d) fail to execute.\n",
+                frame, msg.frame, msg.obj_id, msg.event);
+            return;
+        }
         robot[msg.obj_id].pull_packet();
     };
     f[MSG_ROBOT_NEED_PULL]=robot_pull;
 
     // MSG_BOAT_NEED_BACK：船到达虚拟点
     auto boat_back=[&](Msg msg){
+        if(msg.obj_id<0||msg.obj_id>=BOAT_NUM){
+            fprintf(stderr, "#Error: [%d]MsgHandler:: msg(frame:%d, obj_id:%d, event:%d) fail to execute.\n",
+                frame, msg.frame, msg.obj_id, msg.event);
+            return;
+        }
         boat[msg.obj_id].go_to_berth(boat[msg.obj_id].bind_berth_id);
     };
     f[MSG_BOAT_NEED_BACK]=boat_back;
+
+    // MSG_BOAT_NEED_GO：装载船马上出发
+    auto boat_go=[&](Msg msg){
+        if(msg.obj_id<0||msg.obj_id>=BOAT_NUM){
+            fprintf(stderr, "#Error: [%d]MsgHandler:: msg(frame:%d, obj_id:%d, event:%d) fail to execute.\n",
+                frame, msg.frame, msg.obj_id, msg.event);
+            return;
+        }
+        if(boat[msg.obj_id].status==1){
+            boat[msg.obj_id].deliver();
+        }
+    };
+    f[MSG_BOAT_NEED_GO]=boat_go;
 }
 
 // 期望复杂度：1
