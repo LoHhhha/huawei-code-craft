@@ -130,7 +130,7 @@ bool MsgHandler::event_occurrence_this_frame(){
 // 期望复杂度：1
 // 检测队列是否有需要完成的事件
 // 完成事件返回true，没有事件返回false
-bool MsgHandler::check_and_do(){
+bool MsgHandler::check_and_do() {
     if(!event_occurrence_this_frame())return false;
     while(!pq.empty()&&pq.top().frame==frame){
         auto msg = pq.top();
