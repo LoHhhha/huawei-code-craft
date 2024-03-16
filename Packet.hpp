@@ -2,13 +2,14 @@
 
 #include "util.h"
 #include "Robot.hpp"
+#include "Message.h"
 
 struct Packet {
 	int id;			// 货物id
 	int x, y;		// 货物位置
 	int value;		// 货物价值
 	int timeout;	// 过期时间：帧
-	int status;		// 货物状态：-1：未被预定，其他数字x：已被机器人x预定
+	int status;		// 货物状态：-1：未被预定，[0,ROBOT_NUM)机器人预定 [ROBOT_NUM,2*ROBOT_NUM)机器人拿取
 
 	Packet() = default;
 	Packet(int _id, int _x, int _y, int _value, int _timeout) : id(_id), x(_x), y(_y), value(_value), timeout(_timeout) {}
@@ -17,8 +18,8 @@ struct Packet {
 
 	friend ostream& operator<<(ostream& os, const Packet& packet);
 };
-int packet_id = 0;			// 当前最后一个货物id
-map<int, Packet> packet;	// 货物id -> 货物信息
+
+
 
 // ---------- begin 重载输出流 ----------
 ostream& operator<<(ostream& os, const Packet& packet) {
@@ -32,7 +33,8 @@ ostream& operator<<(ostream& os, const Packet& packet) {
 
 // ---------- begin Packet方法实现 ----------
 
-// 每当有货物生成时调用该方法，向附近最合适的 *一个或0个* 机器人广播货物信息
+// 每当有货物生成时调用该方法（貌似仅在货物新生成时调用），向附近最合适的 *一个或0个* 机器人广播货物信息
+// 返回值：是否成功分配
 bool Packet::broadcast() {
 	queue<pair<int, int>> qu;	// point
 	qu.push({x, y});
@@ -79,13 +81,12 @@ bool Packet::broadcast() {
 						rb.target_berth_id = -1;
 						rb.update_dict();	// 更新最短路径
 						bool can_arrive = rb.set_and_book_a_path_to(this->x, this->y);	// 设置路径
+						
 						// !正常不会出现
 						if (!can_arrive) {
 							fprintf(stderr,"#Error: [%d]Packet::%d(%d,%d) fail to set path to (%d,%d).\n",frame,this->id,this->x,this->y,rb.x,rb.y);
 							return false;
 						}
-
-						packet[this->id].status = 1;	// 已被预定
 						isok = true;
 						break;
 					} else if (rb.packet_id == -1) {	// 有将要取的物品，已经规划好了路径，判断是否将货物重新分配给他
@@ -111,7 +112,6 @@ bool Packet::broadcast() {
 								fprintf(stderr,"#Error: [%d]Packet::%d(%d,%d) fail to set path to (%d,%d).\n",frame,this->id,this->x,this->y,rb.x,rb.y);
 							}
 
-							packet[this->id].status = 1;	// 已被预定
 							isok = true;
 							break;
 						}
@@ -134,3 +134,53 @@ bool Packet::broadcast() {
 
 
 // ---------- end Packet方法实现 ----------
+
+
+// ---------- begin Packet相关全局函数 ----------
+
+// 生成货物
+void generate_packet(int x, int y, int packet_money) {
+	Packet p(++packet_id, x, y, packet_money, frame + PACKET_TIME_OUT);	// 在 1000 帧后过期
+	packet[packet_id] = p;	// 在货物表中添加
+	hash2packet[x*GRAPH_SIZE+y] = packet_id;	// 在哈希表中添加 [[x*GRAPH_SIZE+y] -> packet_id]
+	graph[x][y] ^= PACKET_BIT;	// 在图中添加货物标记
+
+	// 广播货物信息
+	bool is_assigned = p.broadcast();	// 是否已被分配
+	if (!is_assigned) {
+		unbooked_packet.insert(packet_id);	// 添加到未分配货物列表
+	}
+
+	msg_handler.add_an_event(frame + PACKET_TIME_OUT-1, packet_id, MSG_PACKET_NEED_DELETE);		// 事件在每帧结束时执行
+}
+
+// 取走货物
+// 仅删除 hash2packet 中的记录
+void take_packet(int packet_id) {
+	auto &p=packet[packet_id];
+	graph[p.x][p.y] ^= PACKET_BIT;	// 在图中删除货物标记
+	hash2packet.erase(p.x*GRAPH_SIZE+p.y);	// 从哈希表中删除 x*GRAPH_SIZE+y
+}
+
+// 删除货物
+// 删除 packet 中的记录
+void delete_packet(int packet_id) {
+	auto &p=packet[packet_id];
+	hash2packet.erase(p.x * GRAPH_SIZE + p.y);	// 从哈希表中删除 x*GRAPH_SIZE+y
+	packet.erase(packet_id);	// 从货物表中删除
+}
+
+// 货物被预定
+void packet_be_booked(int packet_id, int robot_id) {
+	packet[packet_id].status = robot_id;	// 货物状态：-1：未被预定，其他数字x：已被机器人x预定
+	unbooked_packet.erase(packet_id);
+	robot[robot_id].target_packet_id=packet_id;
+}
+
+// 货物被取消预定
+void packet_unbook(int packet_id){
+	packet[packet_id].status=-1;
+	unbooked_packet.insert(packet_id);
+}
+
+// ---------- end Packet相关全局函数 ----------

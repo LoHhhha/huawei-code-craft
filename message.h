@@ -1,8 +1,7 @@
 #pragma once
 
-#include"util.h"
-#include"robot.hpp"
-#include"boat.hpp"
+#include"util_function.h"
+
 
 // 已支持处理事件：
 // 与Msg事件序号对应
@@ -12,11 +11,13 @@
 // 1：机器人到达泊位 -> 放货操作
 // 100：船已到达虚拟点 -> 返航
 // 101：船出发到虚拟点 -> 出发
+// 200：货物过期 -> 删除货物
 
 #define MSG_ROBOT_NEED_GET 0
 #define MSG_ROBOT_NEED_PULL 1
 #define MSG_BOAT_NEED_BACK 100
 #define MSG_BOAT_NEED_GO 101
+#define MSG_PACKET_NEED_DELETE 200
 
 
 
@@ -49,7 +50,7 @@ public:
     bool check_and_do();
     void add_an_event(int _frame,int _obj_id,int _event);
 };
-MsgHandler msg_handler;
+
 
 
 // ---------- begin MsgHandler方法实现 ----------
@@ -102,6 +103,16 @@ MsgHandler::MsgHandler(){
         }
     };
     f[MSG_BOAT_NEED_GO]=boat_go;
+
+    // MSG_PACKET_NEED_DELETE：删除货物
+    auto packet_delete=[&](Msg msg){
+        // 这个要判断有没有被取走，如果被取走了就不用管了
+        if (packet[msg.obj_id].status>=ROBOT_NUM){
+            return;
+        }   
+        delete_packet(msg.obj_id);
+    };
+    f[MSG_PACKET_NEED_DELETE]=packet_delete;
 }
 
 // 期望复杂度：1

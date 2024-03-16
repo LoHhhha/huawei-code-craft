@@ -9,7 +9,7 @@ struct Berth {
 
 	friend ostream& operator<<(ostream& os, const Berth& berth);
 };
-vector<Berth> berth(BERTH_NUM);	// 码头 vector
+
 
 // ---------- begin 重载输出流 ----------
 ostream& operator<<(ostream& os, const Berth& berth) {

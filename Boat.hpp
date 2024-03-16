@@ -21,7 +21,6 @@ struct Boat {
 
 	friend ostream& operator<<(ostream& os, const Boat& boat);
 };
-vector<Boat> boat(BOAT_NUM);	// 船 vector
 
 // ---------- begin 重载输出流 ----------
 ostream& operator<<(ostream& os, const Boat& boat) {

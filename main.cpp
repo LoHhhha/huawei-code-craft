@@ -66,8 +66,9 @@ int get_input() {
 	for (int i=0;i<goods_num;i++) {
 		int x, y, packet_money;
 		cin >> x >> y >> packet_money;
-		Packet p(++packet_id, x, y, packet_money, frame + PACKET_TIME_OUT);	// 在 1000 帧后过期
-		packet[packet_id] = p;
+		// Packet p(++packet_id, x, y, packet_money, frame + PACKET_TIME_OUT);	// 在 1000 帧后过期
+		// packet[packet_id] = p;
+		generate_packet(x, y, packet_money);	// 生成货物
 	}
 
 	// 机器人
