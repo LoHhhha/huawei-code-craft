@@ -7,7 +7,6 @@
 #include "Boat.hpp"
 #include "Berth.hpp"
 
-
 // init
 
 void get_robot_can_go();
