@@ -1,6 +1,6 @@
 #pragma once
 
-#include "util.h"
+#include "Param.hpp"
 
 struct Berth {
 	int x, y;					// 码头左上角坐标
@@ -12,10 +12,8 @@ struct Berth {
 };
 
 
-// ---------- begin 重载输出流 ----------
-ostream& operator<<(ostream& os, const Berth& berth) {
-	os << "泊位: 坐标(" << berth.x << ", " << berth.y << "), 运输时间: ";
-	os << berth.transport_time << ", 装载速度: " << berth.loading_speed;
-	return os;
-}
-// ---------- end 重载输出流 ----------
+
+// ---------- begin berth ----------
+static bool use_berth[BERTH_NUM]{0};		// 泊位是否被使用
+static vector<Berth> berth(BERTH_NUM);	// 码头 vector
+// ---------- end berth ----------
