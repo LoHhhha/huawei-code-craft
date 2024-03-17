@@ -193,6 +193,7 @@ void choose_best_berth(int num){
 	for(int i=0,boat_idx=0;i<BERTH_NUM;i++){
 		if(use_berth[i]){
 			boat[boat_idx].bind_berth_id=i;
+			boat[boat_idx].go_to_berth(i);
 			msg_handler.add_an_event(FRAME_COUNT-berth[i].transport_time,boat_idx,MSG_BOAT_NEED_GO);
 			boat_idx++;
 		}

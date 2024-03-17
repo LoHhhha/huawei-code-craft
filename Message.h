@@ -1,12 +1,12 @@
 #pragma once
 
-#include"util_function.h"
+#include"util.h"
 
 
 // 已支持处理事件：
 // 与Msg事件序号对应
 // 根据事件来完成对obj的分类
-// 约定：0-99分配给机器人，100-199分配给船
+// 约定：0-99分配给机器人，100-199分配给船，200-299分配给货物
 // 0：机器人到达取货点 -> 取货操作
 // 1：机器人到达泊位 -> 放货操作
 // 100：船已到达虚拟点 -> 返航
@@ -19,7 +19,9 @@
 #define MSG_BOAT_NEED_GO 101
 #define MSG_PACKET_NEED_DELETE 200
 
-
+struct Robot;
+struct Boat;
+struct Packet;
 
 struct Msg{
     int frame;      // 事件发生帧数

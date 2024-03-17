@@ -1,6 +1,6 @@
 #include "util_function.h"
 
-#define DE_BUG
+// #define DE_BUG
 #ifdef DE_BUG
     #include "DEBUG.h"
     using namespace DEBUG_;
@@ -62,13 +62,14 @@ int get_input() {
 
 	// 货物
 	int goods_num;
+	int real_goods_num = 0;
 	cin >> goods_num;
 	for (int i=0;i<goods_num;i++) {
 		int x, y, packet_money;
 		cin >> x >> y >> packet_money;
 		// Packet p(++packet_id, x, y, packet_money, frame + PACKET_TIME_OUT);	// 在 1000 帧后过期
 		// packet[packet_id] = p;
-		generate_packet(x, y, packet_money);	// 生成货物
+		real_goods_num += generate_packet(x, y, packet_money);	// 生成货物
 	}
 
 	// 机器人
@@ -99,7 +100,84 @@ int get_input() {
 	string okk;
 	cin >> okk;
 
-	return goods_num;
+	return real_goods_num;
+}
+
+// 检查是否存在异常状态（机器人是否处于恢复状态）并处理、船是否已满、新货物广播
+void checker(){
+	// 机器人处理
+	// 不太可能出现
+	for(int i=0;i<ROBOT_NUM;i++){
+		if(!robot[i].status){
+			fprintf(stderr, "#Error: [%d]Checker:: Robot::%d detect a crush.\n", frame, i);
+			robot[i].recover();
+		}
+	}
+
+
+	// 船检查是否已满
+	for(int i=0;i<BOAT_NUM;i++){
+		if(boat[i].load>=boat[i].capacity){
+			boat[i].load=0;
+			boat[i].deliver();
+			msg_handler.add_an_event(frame+berth[boat[i].berth_id].transport_time,i,MSG_BOAT_NEED_BACK);
+			if(boat[i].berth_id==-1){
+				fprintf(stderr, "#Warning: [%d]Checker:: Boat::%d full but not in any berth.\n", frame, i);
+			}
+		}
+	}
+
+}
+
+// 处理每一帧
+void solve(){
+	// 1. get_input 更新参数、新货物广播
+	// 2. checker 检查是否存在异常状态（机器人是否处于恢复状态）并处理、船是否已满
+	// 3. 空闲机器人重新规划路线\前往待机点\待机
+	// 4. 机器人前进检查
+	// 5. 消息处理
+	// 6. 更新船只装载
+
+	// step 1
+	int goods_num = get_input();	// 获取帧输入
+	for (int i=packet_id-goods_num+1;i<=packet_id;i++) {	// 广播新生成的货物（在结束帧输入后进行）
+		broadcast_packet(i);
+	}
+
+	// step 2
+	checker();
+
+	// step 3
+	for(int i=0;i<ROBOT_NUM;i++){
+		if(robot[i].packet_id==-1&&robot[i].target_packet_id==-1){
+			robot[i].find_a_best_packet();
+		}
+	}
+	for(int i=0;i<ROBOT_NUM;i++){
+		robot[i].go_to_nearest_berth();
+	}
+	// todo 空闲机器人的处理
+	// 机器人均匀到达地图的点
+
+	// step 4
+	for(int i=0;i<ROBOT_NUM;i++){
+		robot[i].go_to_next_point();
+	}
+
+	// step 5
+	msg_handler.check_and_do();
+
+	// step 6
+	for(int i=0;i<BOAT_NUM;i++){
+		if(boat[i].status==1&&boat[i].berth_id!=-1){
+			auto &tberth=berth[boat[i].berth_id];
+			int change_size=min(tberth.current_wait_packet,tberth.transport_time);
+			boat[i].load+=change_size;
+			tberth.current_wait_packet-=change_size;
+		}
+	}
+
+	cout<<"OK"<<endl;
 }
 
 // 处理每一帧
@@ -145,6 +223,7 @@ int main() {
 		freopen("judge_output.txt", "r", stdin);
 		// freopen("debug/user_output.txt", "w", stdout);
 	#endif
+	freopen("debug/debug_output.txt", "w", stderr);
 
 	init();		// 初始化
 	for (int i=1;i<=FRAME_TO_RUN;i++) {

@@ -25,15 +25,17 @@ struct Robot {
 	int get_dict_to(int tx,int ty);
 	bool set_and_book_a_path_to(int tx,int ty);
 	void cancel_path_book();
+	void book_get_packet_event(int arrive_frame);
+	void book_pull_packet_event(int arrive_frame);
 
-	// ----- high level -----
+	// ----- begin high level -----
 
 	bool go_to_next_point();
 	bool go_to_nearest_berth();
 	bool find_a_best_packet();
 	void recover();
 
-	// ----- high level -----
+	// ----- end high level -----
 
 	void get_packet();
 	void pull_packet();
@@ -56,7 +58,8 @@ ostream& operator<<(ostream& os, const Robot& rb) {
 // ---------- begin Robot方法实现 ----------
 
 // 期望复杂度：1e6(4e4*1e2)
-// 求解当前位置到每一点的最短可行路径 更新机器人shortest_dict/sleep
+// 求解当前位置到每一点的最短可行路径 更新机器人shortest_dict/sleep 
+// 描述的是绝对帧数
 // 注意：update操作后，任一机器人对象的book操作都可能导致更新结果不正确
 void Robot::update_dict() {
 	for(int i=0;i<GRAPH_SIZE;i++) {
@@ -253,12 +256,23 @@ void Robot::cancel_path_book(){
 	}
 }
 
+// 订阅一个取货物的事件
+void Robot::book_get_packet_event(int arrive_frame){
+	msg_handler.add_an_event(arrive_frame,this->id,MSG_ROBOT_NEED_GET);
+}
+
+// 订阅一个放货物的事件
+void Robot::book_pull_packet_event(int arrive_frame){
+	msg_handler.add_an_event(arrive_frame,this->id,MSG_ROBOT_NEED_PULL);
+}
+
 // 期望复杂度：1
 // 指示机器人拿起货物，robot.target_packet_id=-1
 // 注意：没有考虑是否有货物，一帧内切勿使用多次，到达目的地可以马上取
 void Robot::get_packet(){
 	printf(GET_OP,this->id);
 	this->target_packet_id=-1;
+	take_packet(this->packet_id);
 }
 
 // 期望复杂度：1
@@ -266,6 +280,8 @@ void Robot::get_packet(){
 // 注意：没有考虑是否有货物，一帧内切勿使用多次，到达目的地可以马上取
 void Robot::pull_packet(){
 	printf(PULL_OP,this->id);
+	berth[this->target_berth_id].current_wait_packet++;
+	delete_packet(this->packet_id);
 	this->target_berth_id=-1;
 }
 
@@ -327,7 +343,7 @@ void Robot::recover(){
 // 成功时返回true并设置robot.target_berth_id，否则false
 // 注意：请在拿到货物后调用；最近的泊位根据的是机器人所在位置；调用后需要立即检查是否需要走
 bool Robot::go_to_nearest_berth(){
-	if(this->packet_id==-1){
+	if(this->status==0||this->packet_id==-1){
 		return false;
 	}
 
@@ -355,8 +371,10 @@ bool Robot::go_to_nearest_berth(){
 		return false;
 	}
 
-	this->set_and_book_a_path_to(point_hash/GRAPH_SIZE,point_hash%GRAPH_SIZE);
+	int target_point_x=point_hash/GRAPH_SIZE,target_point_y=point_hash%GRAPH_SIZE;
+	this->set_and_book_a_path_to(target_point_x,target_point_y);
 	this->target_berth_id=nearest_berth;
+	this->book_pull_packet_event(this->shortest_dict[target_point_x][target_point_y]);
 }
 
 // 顶层函数(不必调用其余函数)
@@ -366,7 +384,7 @@ bool Robot::go_to_nearest_berth(){
 // 具体算法：寻找value/dict最大的包裹
 // 注意：本函数可多次调用【只要未拿到包裹可随时更新最优】
 bool Robot::find_a_best_packet(){
-	if(this->packet_id!=-1){
+	if(this->status==0||this->packet_id!=-1){
 		return false;
 	}
 
@@ -378,8 +396,8 @@ bool Robot::find_a_best_packet(){
 		for(int j=0;j<GRAPH_SIZE;j++){
 			int packet_hash=i*GRAPH_SIZE+j;
 			// 抵达货物时不会超时
-			if(graph[i][j]&PACKET_BIT&&packet[hash2packet[packet_hash]].timeout>this->shortest_dict[i][j]+frame){
-				double current_rate=(packet[hash2packet[packet_hash]].value)/(this->shortest_dict[i][j]+go_to_which_berth[i][j].second);
+			if(graph[i][j]&PACKET_BIT&&packet[hash2packet[packet_hash]].timeout>this->shortest_dict[i][j]){
+				double current_rate=(packet[hash2packet[packet_hash]].value)/(this->shortest_dict[i][j]-frame+go_to_which_berth[i][j].second);
 				if(current_rate==best_rate){
 					best_rate=current_rate;
 					best_packet_hash=packet_hash;
@@ -391,9 +409,11 @@ bool Robot::find_a_best_packet(){
 	// 当更好的不是当前算到最好的则修改
 	int new_target_packet_id=hash2packet[best_packet_hash];
 	if(this->target_packet_id!=new_target_packet_id){
+		int best_packet_x=best_packet_hash/GRAPH_SIZE,best_packet_y=best_packet_hash%GRAPH_SIZE;
 		this->cancel_path_book();
-		this->set_and_book_a_path_to(best_packet_hash/GRAPH_SIZE,best_packet_hash%GRAPH_SIZE);
+		this->set_and_book_a_path_to(best_packet_x,best_packet_y);
 		this->target_packet_id=new_target_packet_id;
+		this->book_get_packet_event(this->shortest_dict[best_packet_x][best_packet_y]);
 		return true;
 	}
 	return false;

@@ -9,7 +9,7 @@ struct Boat {
 	int id;
     int status;         // 0：移动中，1：正常运行状态(装货/运输完成状态)，2：泊位外等待状态
     int berth_id;	    // 目标泊位id，值为-1时表示目标泊位为虚拟点
-	int bind_berth_id;	// 绑定泊位， -1为未绑定
+	int bind_berth_id;	// 绑定泊位， 注意：船只只会在这个泊位中
     int load;           // 目前装载数
     int capacity;  		// 船的容量 *初赛固定
 
