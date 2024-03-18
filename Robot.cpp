@@ -385,33 +385,40 @@ bool Robot::find_a_best_packet(){
 
 	this->update_dict();
 
-	int best_packet_hash=-1;
+	int best_packet_id=-1;
 	double best_rate=-1;
 	for(int i=0;i<GRAPH_SIZE;i++){
 		for(int j=0;j<GRAPH_SIZE;j++){
 			int packet_hash=i*GRAPH_SIZE+j;
-			// 抵达货物时不会超时
-			if(graph[i][j]&PACKET_BIT&&packet[hash2packet[packet_hash]].timeout>this->shortest_dict[i][j]){
-				double current_rate=(packet[hash2packet[packet_hash]].value)/(this->shortest_dict[i][j]-frame+go_to_which_berth[i][j].second);
-				if(current_rate==best_rate){
-					best_rate=current_rate;
-					best_packet_hash=packet_hash;
+			
+			if(graph[i][j]&PACKET_BIT){
+				int packet_id=hash2packet[packet_hash];
+				// 抵达货物时不会超时
+				if(unbooked_packet.count(packet_id)&&packet[packet_id].timeout>this->shortest_dict[i][j]){
+					double current_rate=(packet[packet_id].value)/(this->shortest_dict[i][j]-frame+go_to_which_berth[i][j].second);
+					if(current_rate>best_rate){
+						best_rate=current_rate;
+						best_packet_id=packet_id;
+					}
 				}
 			}
 		}
 	}
 
 	// 当更好的不是当前算到最好的则修改
-	int new_target_packet_id=hash2packet[best_packet_hash];
-	if(this->target_packet_id!=new_target_packet_id){
-		fprintf(stderr,"#Note(Robot::find_a_best_packet): [%d]Robot::%d(%d,%d) change its target_packet from Packet::%d to Packet::%d.\n", frame, this->id, this->x, this->y, this->target_packet_id, new_target_packet_id);
-		int best_packet_x=best_packet_hash/GRAPH_SIZE,best_packet_y=best_packet_hash%GRAPH_SIZE;
+	if(this->target_packet_id!=best_packet_id&&best_packet_id!=-1){
+		if(this->target_packet_id!=-1)packet_unbook(this->target_packet_id);
+		packet_be_booked(best_packet_id,this->id);
+		int best_packet_x=packet[best_packet_id].x,best_packet_y=packet[best_packet_id].y;
 		this->cancel_path_book();
 		this->set_and_book_a_path_to(best_packet_x,best_packet_y);
-		this->target_packet_id=new_target_packet_id;
+		this->target_packet_id=best_packet_id;
 		this->book_get_packet_event(this->shortest_dict[best_packet_x][best_packet_y]);
+
+		fprintf(stderr,"#Note(Robot::find_a_best_packet): [%d]Robot::%d(%d,%d) change its target_packet from Packet::%d to Packet::%d.\n", frame, this->id, this->x, this->y, this->target_packet_id, best_packet_id);
 		return true;
 	}
+	fprintf(stderr,"#Note(Robot::find_a_best_packet): [%d]Robot::%d(%d,%d) keep its target_packet as Packet::%d.\n", frame, this->id, this->x, this->y, this->target_packet_id);
 	return false;
 }
 // ---------- end Robot方法实现 ----------

@@ -70,9 +70,9 @@ void init() {
 	get_robot_can_go();
 	choose_best_berth(min(BOAT_NUM,BERTH_NUM));
 
-	#ifdef DE_BUG
-		debug(graph, robot_can_go, go_to_which_berth)
-	#endif
+	// #ifdef DE_BUG
+	// 	debug(graph, robot_can_go, go_to_which_berth)
+	// #endif
 
 	cout << "OK" << endl << flush;
 }
