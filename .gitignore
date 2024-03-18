@@ -1,3 +1,6 @@
 /比赛资料/
 /build/
 /debug/
+/replay/
+/z_judge_*
+/*.exe
