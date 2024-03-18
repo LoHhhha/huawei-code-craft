@@ -1,6 +1,5 @@
 #pragma once
 
-#include "Param.hpp"
 
 #define SHIP_OP "ship %d %d"	// 船移动指令 ship boat_id[0-4] berth_id[0-9]
 #define GO_OP "go %d"			// 船交货指令 go boat_id[0-4]

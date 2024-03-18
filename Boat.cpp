@@ -1,3 +1,4 @@
+#include "Param.hpp"
 #include"Boat.hpp"
 
 void send_ship(int id, int berth_id) { cout << "ship " << id << " " << berth_id << endl; };

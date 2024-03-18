@@ -1,6 +1,5 @@
 #pragma once
 
-#include "Param.hpp"
 
 struct Packet {
 	int id;			// 货物id

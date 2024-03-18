@@ -1,6 +1,5 @@
 #pragma once
 
-#include "Param.hpp"
 
 struct Berth {
 	int x, y;					// 码头左上角坐标

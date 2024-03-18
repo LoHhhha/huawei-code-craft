@@ -1,6 +1,5 @@
 #pragma once
 
-#include "Util.hpp"
 
 #define MOVE_OP "move %d %d"		// 机器人移动指令 move id[0-9] dir[0-3]
 #define GET_OP "get %d"				// 机器人取货指令 get id[0-9]
