@@ -19,9 +19,6 @@
 #define MSG_BOAT_NEED_GO 101
 #define MSG_PACKET_NEED_DELETE 200
 
-struct Robot;
-struct Boat;
-struct Packet;
 
 struct Msg{
     int frame;      // 事件发生帧数
@@ -52,7 +49,3 @@ public:
     bool check_and_do();
     void add_an_event(int _frame,int _obj_id,int _event);
 };
-
-// ---------- begin msgHandler ----------
-static MsgHandler msg_handler;
-// ---------- end msgHandler ----------

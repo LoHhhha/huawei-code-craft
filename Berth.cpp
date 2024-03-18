@@ -1,5 +1,7 @@
 #include"Berth.hpp"
 
+
+
 // ---------- begin 重载输出流 ----------
 ostream& operator<<(ostream& os, const Berth& berth) {
 	os << "泊位: 坐标(" << berth.x << ", " << berth.y << "), 运输时间: ";

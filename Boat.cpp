@@ -1,6 +1,7 @@
 #include"Boat.hpp"
 
 
+
 // ---------- begin 重载输出流 ----------
 ostream& operator<<(ostream& os, const Boat& boat) {
 	os << "船: 状态: " << boat.status << ", 目标泊位id: " << boat.berth_id << ", ";

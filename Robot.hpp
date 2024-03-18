@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Param.hpp"
+#include "Util.hpp"
 
 #define MOVE_OP "move %d %d"		// 机器人移动指令 move id[0-9] dir[0-3]
 #define GET_OP "get %d"				// 机器人取货指令 get id[0-9]
@@ -44,6 +44,4 @@ struct Robot {
 };
 
 
-// ---------- begin robot ----------
-static vector<Robot> robot(ROBOT_NUM);	// 机器人 vector
-// ---------- end robot ----------
+

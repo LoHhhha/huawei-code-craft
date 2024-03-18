@@ -18,16 +18,3 @@ struct Packet {
 };
 
 
-bool generate_packet(int x, int y, int packet_money);
-void broadcast_packet(int packet_id);
-void take_packet(int packet_id);
-void delete_packet(int packet_id);
-void packet_be_booked(int packet_id, int robot_id);
-void packet_unbook(int packet_id);
-
-// ---------- begin packet ----------
-static int packet_id = 0;					// 当前最后一个货物id (第一个货物id为1) 
-static map<int, Packet> packet;			// 货物id -> 货物信息
-static map<int,int> hash2packet;           // point_hash(x*GRAPH_SIZE+y) 转化为货物id
-static set<int> unbooked_packet;	        // 未被预定的货物 id
-// ---------- end packet ----------

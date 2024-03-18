@@ -13,7 +13,3 @@ struct Berth {
 
 
 
-// ---------- begin berth ----------
-static bool use_berth[BERTH_NUM]{0};		// 泊位是否被使用
-static vector<Berth> berth(BERTH_NUM);	// 码头 vector
-// ---------- end berth ----------

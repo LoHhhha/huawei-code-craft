@@ -1,6 +1,7 @@
 #pragma once
 
 #include<bits/stdc++.h>
+
 using namespace std;
 
 using ll = long long;
@@ -26,16 +27,51 @@ using pii = pair<int, int>;
 #define PACKET_BIT 	4	        // 货物标记
 
 
+struct Boat;
+struct Berth;
+struct Packet;
+struct Robot;
+class MsgHandler;
 
-static int dir[4][2] = {{0,1}, {0,-1}, {-1,0}, {1,0}};		// 移动方向，下标与机器人指令方向一致
+
+extern int dir[4][2];   // 移动方向，下标与机器人指令方向一致
 
 
-static int frame;	// 当前帧数
-static int money;	// 当前金钱数
+extern int frame;	// 当前帧数
+extern int money;	// 当前金钱数
 
 // ---------- begin graph ----------
-static vector<vector<int>> graph(GRAPH_SIZE, vector<int>(GRAPH_SIZE));	// 地图 vector 障碍:-1 空地:0 停泊点:1 机器人:2 货物:4 （二进制）
-static vector<vector<map<int,int>>> book(GRAPH_SIZE, vector<map<int,int>>(GRAPH_SIZE));	// pii:{book_frame,id} 点被预定的情况
-static pii go_to_which_berth[GRAPH_SIZE][GRAPH_SIZE];		// 场上每一个点去哪一个泊位{id, dict} 注意：当id==-1或者dict==INT_INF时不可达！
-static bool robot_can_go[GRAPH_SIZE][GRAPH_SIZE]{0};  // 维护机器人能到达的点
+extern vector<vector<int>> graph;	// 地图 vector 障碍:-1 空地:0 停泊点:1 机器人:2 货物:4 （二进制）
+extern vector<vector<map<int,int>>> book;	// pii:{book_frame,id} 点被预定的情况
+extern pii go_to_which_berth[GRAPH_SIZE][GRAPH_SIZE];		// 场上每一个点去哪一个泊位{id, dict} 注意：当id==-1或者dict==INT_INF时不可达！
+extern bool robot_can_go[GRAPH_SIZE][GRAPH_SIZE];  // 维护机器人能到达的点
 // ---------- end graph ----------
+
+
+// ---------- begin berth ----------
+extern bool use_berth[BERTH_NUM];		// 泊位是否被使用
+extern vector<Berth> berth;	// 码头 vector
+// ---------- end berth ----------
+
+
+// ---------- begin boat ----------
+extern vector<Boat> boat;	// 船 vector
+// ---------- end boat ----------
+
+
+// ---------- begin message ----------
+extern MsgHandler msg_handler;
+// ---------- end message ----------
+
+
+// ---------- begin packet ----------
+extern int packet_id;						// 当前最后一个货物id (第一个货物id为1) 
+extern map<int, Packet> packet;				// 货物id -> 货物信息
+extern map<int,int> hash2packet;           	// point_hash(x*GRAPH_SIZE+y) 转化为货物id
+extern set<int> unbooked_packet;	        // 未被预定的货物 id
+// ---------- end packet ----------
+
+
+// ---------- begin robot ----------
+extern vector<Robot> robot;	// 机器人 vector
+// ---------- end robot ----------

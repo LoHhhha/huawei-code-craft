@@ -1,4 +1,10 @@
 #include "Util.hpp"
+#include "Message.hpp"
+#include "Robot.hpp"
+#include "Packet.hpp"
+#include "Boat.hpp"
+#include "Berth.hpp"
+
 
 
 // ---------- begin init ----------
@@ -197,3 +203,62 @@ void choose_best_berth(int num){
 }
 
 // ---------- end init ----------
+
+
+// ---------- begin Packet相关全局函数 ----------
+
+// 生成货物
+bool generate_packet(int x, int y, int packet_money) {
+	if(robot_can_go[x][y]){
+		Packet p(++packet_id, x, y, packet_money, frame + PACKET_TIME_OUT);	// 在 1000 帧后过期
+		packet[packet_id] = p;	// 在货物表中添加
+		hash2packet[x*GRAPH_SIZE+y] = packet_id;	// 在哈希表中添加 [[x*GRAPH_SIZE+y] -> packet_id]
+		graph[x][y] ^= PACKET_BIT;	// 在图中添加货物标记
+		msg_handler.add_an_event(frame + PACKET_TIME_OUT-1, packet_id, MSG_PACKET_NEED_DELETE);		// 事件在每帧结束时执行
+		return true;
+	}
+	return false;
+}
+
+
+// 广播货物信息
+void broadcast_packet(int packet_id) {
+	auto p = packet[packet_id];	// 在货物表中添加
+	// 广播货物信息
+	bool is_assigned = p.broadcast();	// 是否已被分配
+	if (!is_assigned) {
+		unbooked_packet.insert(packet_id);	// 添加到未分配货物列表
+	}
+}
+
+
+// 取走货物
+// 仅删除 hash2packet 中的记录
+void take_packet(int packet_id) {
+	auto &p=packet[packet_id];
+	graph[p.x][p.y] ^= PACKET_BIT;	// 在图中删除货物标记
+	hash2packet.erase(p.x*GRAPH_SIZE+p.y);	// 从哈希表中删除 x*GRAPH_SIZE+y
+}
+
+// 删除货物
+// 删除 packet 中的记录
+void delete_packet(int packet_id) {
+	auto &p=packet[packet_id];
+	hash2packet.erase(p.x * GRAPH_SIZE + p.y);	// 从哈希表中删除 x*GRAPH_SIZE+y
+	packet.erase(packet_id);	// 从货物表中删除
+}
+
+// 货物被预定
+void packet_be_booked(int packet_id, int robot_id) {
+	packet[packet_id].status = robot_id;	// 货物状态：-1：未被预定，其他数字x：已被机器人x预定
+	unbooked_packet.erase(packet_id);
+	robot[robot_id].target_packet_id=packet_id;
+}
+
+// 货物被取消预定
+void packet_unbook(int packet_id){
+	packet[packet_id].status=-1;
+	unbooked_packet.insert(packet_id);
+}
+
+// ---------- end Packet相关全局函数 ----------

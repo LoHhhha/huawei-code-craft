@@ -23,6 +23,3 @@ struct Boat {
 };
 
 
-// ---------- begin boat ----------
-static vector<Boat> boat(BOAT_NUM);		// 船 vector
-// ---------- end boat ----------
