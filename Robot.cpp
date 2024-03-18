@@ -135,10 +135,15 @@ int Robot::get_dict_to(int tx,int ty) {
 // 设置机器人路径并订阅地图单元格
 // 注意：此操作会调用get_dict_to，若不可达将返回false，使用时注意甄别
 bool Robot::set_and_book_a_path_to(int tx, int ty) {
+	if(tx<0||ty<0||tx>=GRAPH_SIZE||ty>=GRAPH_SIZE){
+		fprintf(stderr,"#Error(Robot::set_and_book_a_path_to): [%d]Robot::%d(%d,%d) fail to set path to point(%d,%d) because point invalid.\n",frame,this->id,this->x,this->y,tx,ty);
+		return false;
+	}
+
 	int frame_arrive = get_dict_to(tx,ty);
 
 	if (frame_arrive == -1) {
-		fprintf(stderr, "#Warning: [%d]Robot::%d(%d,%d) fail to get path to (%d,%d) because unreachable.\n", frame, this->id, this->x, this->y, tx, ty);
+		fprintf(stderr, "#Warning(Robot::set_and_book_a_path_to): [%d]Robot::%d(%d,%d) fail to get path to point(%d,%d) because point unreachable.\n", frame, this->id, this->x, this->y, tx, ty);
 		return false;
 	}
 
@@ -169,7 +174,7 @@ bool Robot::set_and_book_a_path_to(int tx, int ty) {
 
 		// 理论上不可能到达该处
 		if (!isok) {
-			fprintf(stderr,"#Error: [%d]Robot::%d(%d,%d) fail to set path to (%d,%d) because path cann`t get.\n",frame,this->id,this->x,this->y,tx,ty);
+			fprintf(stderr,"#Error(Robot::set_and_book_a_path_to): [%d]Robot::%d(%d,%d) fail to set path to point(%d,%d) because path cann`t get. If you see this check Robot::update_dict.\n",frame,this->id,this->x,this->y,tx,ty);
 
 			// 清空book
 			this->cancel_path_book();
@@ -182,6 +187,7 @@ bool Robot::set_and_book_a_path_to(int tx, int ty) {
 		
 	}
 
+	fprintf(stderr,"#Note(Robot::set_and_book_a_path_to): [%d]Robot::%d(%d,%d) success to set path to point(%d,%d).\n",frame,this->id,this->x,this->y,tx,ty);
 	return true;
 }
 
@@ -190,14 +196,14 @@ bool Robot::set_and_book_a_path_to(int tx, int ty) {
 // 注意：当没有路径时，返回false
 bool Robot::go_to_next_point() {
 	if (this->path.empty()) {
-		fprintf(stderr,"#Warning: [%d]Robot::%d(%d,%d) do not have a target point.\n", frame, this->id, this->x, this->y);
+		fprintf(stderr,"#Warning(Robot::go_to_next_point): [%d]Robot::%d(%d,%d) do not have a target point.\n", frame, this->id, this->x, this->y);
 		return false;
 	}
 
 	auto [frame_to_go, point_hash] = this->path.top();
+	int current_x = this->x, current_y = this->y;
+	int next_x = point_hash/GRAPH_SIZE, next_y = point_hash%GRAPH_SIZE;
 	if (frame == frame_to_go) {
-		int current_x = this->x, current_y = this->y;
-		int next_x = point_hash/GRAPH_SIZE, next_y = point_hash%GRAPH_SIZE;
 		bool isok = false;
 		for (int i=0;i<4;i++) {
 			auto &[dx, dy] = dir[i];
@@ -208,20 +214,20 @@ bool Robot::go_to_next_point() {
 			}
 		}
 		if (!isok) {
-			fprintf(stderr,"#Error: [%d]Robot::%d(%d,%d) fail to move.\n",frame,this->id,this->x,this->y);
-		}
-		this->path.pop();
-	}
-	else if(frame>frame_to_go){
-		int current_x = this->x, current_y = this->y;
-		int next_x = point_hash/GRAPH_SIZE, next_y = point_hash%GRAPH_SIZE;
-		if(current_x!=next_x||current_y!=next_y){
-			fprintf(stderr,"#Error: [%d]Robot::%d(%d,%d) path error because timeout.\n",frame,this->id,this->x,this->y);
+			fprintf(stderr,"#Error(Robot::go_to_next_point): [%d]Robot::%d(%d,%d) fail to move to point(%d,%d) because can not find a valid path.\n",frame,this->id,this->x,this->y,next_x,next_y);
 			this->cancel_path_book();
 		}
+	}
+	else if(frame>frame_to_go){
+		if(current_x!=next_x||current_y!=next_y){
+			fprintf(stderr,"#Error(Robot::go_to_next_point): [%d]Robot::%d(%d,%d) fail to move to point(%d,%d) because timeout.\n",frame,this->id,this->x,this->y,next_x,next_y);
+			this->cancel_path_book();
+		}
+	}
+	if(!this->path.empty()){
 		this->path.pop();
 	}
-
+	fprintf(stderr,"#Note(Robot::go_to_next_point): [%d]Robot::%d(%d,%d) success move to point(%d,%d).\n",frame,this->id,this->x,this->y);
 	return true;
 }
 
@@ -235,6 +241,7 @@ void Robot::cancel_path_book(){
 		book[p_x][p_y].erase(rframe+1);
 	}
 	this->target_berth_id=-1,this->target_packet_id=-1;
+	fprintf(stderr,"#Note(Robot::cancel_path_book): [%d]Robot::%d(%d,%d) clear path.\n",frame,this->id,this->x,this->y);
 }
 
 // 订阅一个取货物的事件
@@ -318,6 +325,7 @@ void Robot::recover(){
 	default:
 		break;
 	}
+	fprintf(stderr,"#Note(Robot::recover): [%d]Robot::%d(%d,%d) recover.\n",frame,this->id,this->x,this->y);
 }
 
 // 顶层函数(不必调用其余函数)
@@ -335,7 +343,7 @@ bool Robot::go_to_nearest_berth(){
 
 	// 不可能发生的情况
 	if(nearest_berth==-1){
-		fprintf(stderr,"#Error: [%d]Robot::%d(%d,%d) cann`t find a nearest berth.\n", frame, this->id, this->x, this->y);
+		fprintf(stderr,"#Error(Robot::go_to_nearest_berth): [%d]Robot::%d(%d,%d) cann`t find a nearest berth in it`s point.\n", frame, this->id, this->x, this->y);
 		return false;
 	}
 
@@ -358,6 +366,8 @@ bool Robot::go_to_nearest_berth(){
 	this->set_and_book_a_path_to(target_point_x,target_point_y);
 	this->target_berth_id=nearest_berth;
 	this->book_pull_packet_event(this->shortest_dict[target_point_x][target_point_y]);
+
+	fprintf(stderr,"#Note(Robot::go_to_nearest_berth): [%d]Robot::%d(%d,%d) going to Berth::%d.\n", frame, this->id, this->x, this->y, nearest_berth);
     return true;
 }
 
@@ -369,6 +379,7 @@ bool Robot::go_to_nearest_berth(){
 // 注意：本函数可多次调用【只要未拿到包裹可随时更新最优】
 bool Robot::find_a_best_packet(){
 	if(this->status==0||this->packet_id!=-1){
+		fprintf(stderr,"#Warning(Robot::find_a_best_packet): [%d]Robot::%d(%d,%d) cannot get a packet, status=%d, packet_id=%d.\n", frame, this->id, this->x, this->y, this->status, this->packet_id);
 		return false;
 	}
 
@@ -393,6 +404,7 @@ bool Robot::find_a_best_packet(){
 	// 当更好的不是当前算到最好的则修改
 	int new_target_packet_id=hash2packet[best_packet_hash];
 	if(this->target_packet_id!=new_target_packet_id){
+		fprintf(stderr,"#Note(Robot::find_a_best_packet): [%d]Robot::%d(%d,%d) change its target_packet from Packet::%d to Packet::%d.\n", frame, this->id, this->x, this->y, this->target_packet_id, new_target_packet_id);
 		int best_packet_x=best_packet_hash/GRAPH_SIZE,best_packet_y=best_packet_hash%GRAPH_SIZE;
 		this->cancel_path_book();
 		this->set_and_book_a_path_to(best_packet_x,best_packet_y);
