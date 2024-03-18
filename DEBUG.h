@@ -93,7 +93,7 @@ namespace DEBUG_ {
 		if (NEWLINE) os << "\n";
 		if (!N) os << "]";
 		for (unsigned i=0;i<N;i++) {
-			os << arr[i] << ",";
+			os << arr[i] << ", ";
 			if (NEWLINE) os << "\n";
 		}
 		os << "]";
@@ -107,7 +107,7 @@ namespace DEBUG_ {
 		if (NEWLINE) os << "\n";
 		if (v.empty()) os << "]";
 		for (auto it = v.begin();it!=v.end();it++) {
-			os << *it << ",";
+			os << *it << ", ";
 			if (NEWLINE) os << "\n";
 		}
 		os << "]";
@@ -122,7 +122,7 @@ namespace DEBUG_ {
 		if (NEWLINE) os << "\n";
 		if (value.empty()) os << "}";
         for (auto it = std::begin(value); it != std::end(value); it++) {
-            os << *it << ",";
+            os << *it << ", ";
 			if (NEWLINE) os << "\n";
 		}
 		os << "}";

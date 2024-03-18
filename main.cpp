@@ -235,38 +235,38 @@ int main() {
 
 // ----------------- test -----------------
 
-// 处理每一帧
-void solve_test() {
-	get_input();	// 获取帧输入
-	robot[0].update_dict();
-	for (auto [id, pk]:packet) {
-		printf("货物id: %d, (%d, %d), %d\n", id, pk.x, pk.y, robot[0].get_dict_to(pk.x, pk.y));
-	}
-	auto pk = packet.begin()->second;
-	robot[0].set_and_book_a_path_to(pk.x, pk.y);
-	#ifdef DE_BUG
-		OUTPUT = &std::cout;
-		debug(robot[0].path)
-	#endif
-	robot[0].go_to_next_point();
+// // 处理每一帧
+// void solve_test() {
+// 	get_input();	// 获取帧输入
+// 	robot[0].update_dict();
+// 	for (auto [id, pk]:packet) {
+// 		printf("货物id: %d, (%d, %d), %d\n", id, pk.x, pk.y, robot[0].get_dict_to(pk.x, pk.y));
+// 	}
+// 	auto pk = packet.begin()->second;
+// 	robot[0].set_and_book_a_path_to(pk.x, pk.y);
+// 	#ifdef DE_BUG
+// 		OUTPUT = &std::cout;
+// 		debug(robot[0].path)
+// 	#endif
+// 	robot[0].go_to_next_point();
 
 
-	// #ifdef DE_BUG
-	// 	debug(robot[0], robot[0].path, robot[0].shortest_dict, robot[0].sleep)
-	// #endif
-}
+// 	// #ifdef DE_BUG
+// 	// 	debug(robot[0], robot[0].path, robot[0].shortest_dict, robot[0].sleep)
+// 	// #endif
+// }
 
-// 处理每一帧
-void solve_test_Packet_broadcast() {
-	int goods_num = get_input();	// 获取帧输入
-	// auto pk = packet.begin()->second;
-	// bool flag = pk.broadcast();
-	for (auto &[id, pk]:packet) {
-		pk.broadcast(); 
-	}
-	#ifdef DE_BUG
-		debug(packet, robot)
-	#endif
-}
+// // 处理每一帧
+// void solve_test_Packet_broadcast() {
+// 	int goods_num = get_input();	// 获取帧输入
+// 	// auto pk = packet.begin()->second;
+// 	// bool flag = pk.broadcast();
+// 	for (auto &[id, pk]:packet) {
+// 		pk.broadcast(); 
+// 	}
+// 	#ifdef DE_BUG
+// 		debug(packet, robot)
+// 	#endif
+// }
 
-// ----------------- test -----------------
+// // ----------------- test -----------------

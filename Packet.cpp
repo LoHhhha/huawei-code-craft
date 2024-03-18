@@ -69,7 +69,7 @@ bool Packet::broadcast() {
 						
 						// !正常不会出现
 						if (!can_arrive) {
-							fprintf(stderr,"#Error: [%d]Packet::%d(%d,%d) fail to set path to (%d,%d).\n",frame,this->id,this->x,this->y,rb.x,rb.y);
+							fprintf(stderr,"#Warning(Packet::broadcast): [%d]Robot::%d(%d,%d) fail to set path to Packet::%d(%d,%d).\n", frame, rb.id, rb.x, rb.y, this->id, this->x, this->y);
 							return false;
 						}
 
@@ -96,7 +96,8 @@ bool Packet::broadcast() {
 							bool can_arrive = rb.set_and_book_a_path_to(this->x, this->y);	// 设置路径
 							// !正常不会出现
 							if (!can_arrive) {
-								fprintf(stderr,"#Error: [%d]Packet::%d(%d,%d) fail to set path to (%d,%d).\n",frame,this->id,this->x,this->y,rb.x,rb.y);
+								fprintf(stderr,"#Warning(Packet::broadcast): [%d]Robot::%d(%d,%d) fail to set path to Packet::%d(%d,%d).\n", frame, rb.id, rb.x, rb.y, this->id, this->x, this->y);
+								return false;
 							}
 							rb.book_get_packet_event(rb.shortest_dict[this->x][this->y]);	// 预定取货事件
 							isok = true;
@@ -115,6 +116,9 @@ bool Packet::broadcast() {
 			break;
 		}
 		step++;
+	}
+	if (!isok) {
+		fprintf(stderr,"#Note(Packet::broadcast): [%d]Packet::%d(%d,%d) was not broadcast to any robots.\n", frame, this->id, this->x, this->y);
 	}
 	return isok;	// 是否成功分配
 }
