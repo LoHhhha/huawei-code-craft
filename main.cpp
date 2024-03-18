@@ -6,17 +6,22 @@
 #include "Boat.hpp"
 #include "Berth.hpp"
 
+#define endl '\n'
 
-// #define DE_BUG
+// #define DE_BUG		// 调试模式（总帧数设为1）
 #ifdef DE_BUG
-    #include "DEBUG.h"
-    using namespace DEBUG_;
 	#define FRAME_TO_RUN 1
 #else
 	#define FRAME_TO_RUN FRAME_COUNT
 #endif
 
-#define DEBUG_STATE 1	// 0：关闭，1：终端，2：cph
+#define OUTPUT_DEBUG_INFO	// 输出调试信息
+#ifdef OUTPUT_DEBUG_INFO
+	#include "DEBUG.h"
+    using namespace DEBUG_;
+#endif
+
+#define DEBUG_STATE 1	// 调试模式： 0：关闭，1：终端，2：cph
 
 
 // 初始化
@@ -60,7 +65,7 @@ void init() {
 	get_robot_can_go();
 	choose_best_berth(min(BOAT_NUM,BERTH_NUM));
 
-	cout << "OK" << endl;
+	cout << "OK" << endl << flush;
 }
 
 // 获取帧输入，返回当前帧新生成多少个货物
@@ -151,6 +156,10 @@ void solve(){
 		broadcast_packet(i);
 	}
 
+	// #ifdef DE_BUG
+	// 	debug()
+	// #endif
+
 	// step 2
 	checker();
 
@@ -184,8 +193,30 @@ void solve(){
 		}
 	}
 
-	cout<<"OK"<<endl;
+	cout << "OK" << endl << flush;
 }
+
+
+int main() {
+	#ifdef DE_BUG
+		SEP = "\n";	// 输出分隔符，默认为"  "，不会作用于容器内的对象
+		// NEWLINE = true;	// 是否换行，会作用于容器内的对象，覆盖SEP
+	#endif
+	#if (DEBUG_STATE == 1)	// 调试模式： 0：关闭，1：终端，2：cph
+		freopen("judge_output.txt", "r", stdin);
+		// freopen("debug/user_output.txt", "w", stdout);
+	#endif
+	freopen("debug/debug_output.txt", "w", stderr);	// 重定向错误流
+
+	init();		// 初始化
+	for (int i=1;i<=FRAME_TO_RUN;i++) {
+		solve();
+	}
+
+	return 0;
+}
+
+// ----------------- test -----------------
 
 // 处理每一帧
 void solve_test() {
@@ -221,22 +252,4 @@ void solve_test_Packet_broadcast() {
 	#endif
 }
 
-int main() {
-	#ifdef DE_BUG
-		// SEP = "\n"	// 输出分隔符，默认为"  "，不会作用于容器内的对象
-		NEWLINE = true;	// 是否换行，会作用于容器内的对象，覆盖SEP
-	#endif
-	#if (DEBUG_STATE == 1)
-		freopen("judge_output.txt", "r", stdin);
-		// freopen("debug/user_output.txt", "w", stdout);
-	#endif
-	freopen("debug/debug_output.txt", "w", stderr);
-
-	init();		// 初始化
-	for (int i=1;i<=FRAME_TO_RUN;i++) {
-		solve_test_Packet_broadcast();
-	}
-
-	return 0;
-}
-
+// ----------------- test -----------------

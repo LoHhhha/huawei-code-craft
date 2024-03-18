@@ -4,7 +4,9 @@
 #include "Boat.hpp"
 #include "Berth.hpp"
 
-
+void send_move(int id, int dir) { cout << "move " << id << " " << dir << endl; };
+void send_get(int id) { cout << "get " << id << endl; };
+void send_pull(int id) { cout << "pull " << id << endl; };
 
 // ---------- begin 重载输出流 ----------
 ostream& operator<<(ostream& os, const Robot& rb) {
@@ -194,7 +196,8 @@ bool Robot::go_to_next_point() {
 		for (int i=0;i<4;i++) {
 			auto &[dx, dy] = dir[i];
 			if (current_x+dx==next_x && current_y+dy==next_y) {
-				printf(MOVE_OP, this->id, i);
+				// printf(MOVE_OP, this->id, i);
+				send_move(this->id, i);
 				isok = true;
 			}
 		}
@@ -232,7 +235,8 @@ void Robot::book_pull_packet_event(int arrive_frame){
 // 指示机器人拿起货物，robot.target_packet_id=-1
 // 注意：没有考虑是否有货物，一帧内切勿使用多次，到达目的地可以马上取
 void Robot::get_packet(){
-	printf(GET_OP,this->id);
+	// printf(GET_OP,this->id);
+	send_get(this->id);
 	this->target_packet_id=-1;
 	take_packet(this->packet_id);
 }
@@ -241,7 +245,8 @@ void Robot::get_packet(){
 // 指示机器人放下货物，robot.target_berth_id=-1
 // 注意：没有考虑是否有货物，一帧内切勿使用多次，到达目的地可以马上取
 void Robot::pull_packet(){
-	printf(PULL_OP,this->id);
+	// printf(PULL_OP,this->id);
+	send_pull(this->id);
 	berth[this->target_berth_id].current_wait_packet++;
 	delete_packet(this->packet_id);
 	this->target_berth_id=-1;
