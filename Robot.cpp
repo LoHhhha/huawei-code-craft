@@ -138,8 +138,12 @@ bool Robot::set_and_book_a_path_to(int tx, int ty) {
 	int frame_arrive = get_dict_to(tx,ty);
 
 	if (frame_arrive == -1) {
-		fprintf(stderr, "#Warning: [%d]Robot::%d(%d,%d) fail to get path to (%d,%d).\n", frame, this->id, this->x, this->y, x, y);
+		fprintf(stderr, "#Warning: [%d]Robot::%d(%d,%d) fail to get path to (%d,%d) because unreachable.\n", frame, this->id, this->x, this->y, tx, ty);
 		return false;
+	}
+
+	if(frame_arrive==frame){
+		return true;
 	}
 
 	int current_x = tx, current_y = ty;
@@ -165,7 +169,7 @@ bool Robot::set_and_book_a_path_to(int tx, int ty) {
 
 		// 理论上不可能到达该处
 		if (!isok) {
-			fprintf(stderr,"#Error: [%d]Robot::%d(%d,%d) fail to set path to (%d,%d).\n",frame,this->id,this->x,this->y,tx,ty);
+			fprintf(stderr,"#Error: [%d]Robot::%d(%d,%d) fail to set path to (%d,%d) because path cann`t get.\n",frame,this->id,this->x,this->y,tx,ty);
 
 			// 清空book
 			this->cancel_path_book();
@@ -208,6 +212,15 @@ bool Robot::go_to_next_point() {
 		}
 		this->path.pop();
 	}
+	else if(frame>frame_to_go){
+		int current_x = this->x, current_y = this->y;
+		int next_x = point_hash/GRAPH_SIZE, next_y = point_hash%GRAPH_SIZE;
+		if(current_x!=next_x||current_y!=next_y){
+			fprintf(stderr,"#Error: [%d]Robot::%d(%d,%d) path error because timeout.\n",frame,this->id,this->x,this->y);
+			this->cancel_path_book();
+		}
+		this->path.pop();
+	}
 
 	return true;
 }
@@ -221,6 +234,7 @@ void Robot::cancel_path_book(){
 		int p_x = point_hash/GRAPH_SIZE, p_y = point_hash%GRAPH_SIZE;
 		book[p_x][p_y].erase(rframe+1);
 	}
+	this->target_berth_id=-1,this->target_packet_id=-1;
 }
 
 // 订阅一个取货物的事件

@@ -9,10 +9,16 @@
 #define endl '\n'
 
 // #define DE_BUG		// 调试模式（总帧数设为1）
+#define DEBUG_STATE 1	// 调试模式： 0：关闭，1：终端，2：cph
+#define DEBUG_FRAME 100
+
+
 #ifdef DE_BUG
-	#define FRAME_TO_RUN 1
+	#define FRAME_TO_RUN DEBUG_FRAME
+	#define THIS_DEBUG_STATE DEBUG_STATE
 #else
 	#define FRAME_TO_RUN FRAME_COUNT
+	#define THIS_DEBUG_STATE 0
 #endif
 
 #define OUTPUT_DEBUG_INFO	// 输出调试信息
@@ -21,7 +27,6 @@
     using namespace DEBUG_;
 #endif
 
-#define DEBUG_STATE 1	// 调试模式： 0：关闭，1：终端，2：cph
 
 
 // 初始化
@@ -70,7 +75,15 @@ void init() {
 
 // 获取帧输入，返回当前帧新生成多少个货物
 int get_input() {
-	cin >> frame >> money;	// 获取帧数和金钱数
+	int tmp_frame;
+	cin >> tmp_frame >> money;	// 获取帧数和金钱数
+
+	if(tmp_frame!=frame+1){
+		fprintf(stderr, "#Error: [%d]get_input:: TimeOut, %d.\n", frame, tmp_frame);
+		exit(-1);
+	}
+
+	frame=tmp_frame;
 
 	// 货物
 	int goods_num;
@@ -202,7 +215,7 @@ int main() {
 		SEP = "\n";	// 输出分隔符，默认为"  "，不会作用于容器内的对象
 		// NEWLINE = true;	// 是否换行，会作用于容器内的对象，覆盖SEP
 	#endif
-	#if (DEBUG_STATE == 1)	// 调试模式： 0：关闭，1：终端，2：cph
+	#if (THIS_DEBUG_STATE == 1)	// 调试模式： 0：关闭，1：终端，2：cph
 		freopen("judge_output.txt", "r", stdin);
 		// freopen("debug/user_output.txt", "w", stdout);
 	#endif
