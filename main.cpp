@@ -10,7 +10,7 @@
 
 #define DE_BUG		// 调试模式
 #define DEBUG_STATE 1	// 调试模式： 0：关闭，1：终端，2：cph
-#define DEBUG_FRAME 2	// 调试模式：调试帧数
+#define DEBUG_FRAME 5	// 调试模式：调试帧数
 
 
 #ifdef DE_BUG	
@@ -238,7 +238,11 @@ int main() {
 
 	init();		// 初始化
 	for (int i=1;i<=FRAME_TO_RUN;i++) {
+		clock_t start,end;
+		start=clock();
 		solve();
+		end=clock();
+		fprintf(stderr,"#Note(main): [%d]Using %fs.\n\n",frame,double(end-start)/CLOCKS_PER_SEC);
 		cout.flush();
 	}
 
