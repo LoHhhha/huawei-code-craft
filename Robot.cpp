@@ -227,7 +227,7 @@ bool Robot::go_to_next_point() {
 	if(!this->path.empty()){
 		this->path.pop();
 	}
-	fprintf(stderr,"#Note(Robot::go_to_next_point): [%d]Robot::%d(%d,%d) success move to point(%d,%d).\n",frame,this->id,this->x,this->y);
+	fprintf(stderr,"#Note(Robot::go_to_next_point): [%d]Robot::%d(%d,%d) success move to point(%d,%d).\n",frame,this->id,this->x,this->y,next_x,next_y);
 	return true;
 }
 
