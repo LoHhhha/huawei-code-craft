@@ -8,9 +8,9 @@
 
 #define endl '\n'
 
-// #define DE_BUG		// 调试模式（总帧数设为1）
+#define DE_BUG		// 调试模式
 #define DEBUG_STATE 1	// 调试模式： 0：关闭，1：终端，2：cph
-#define DEBUG_FRAME 100
+#define DEBUG_FRAME 2
 
 
 #ifdef DE_BUG
@@ -169,9 +169,9 @@ void solve(){
 		broadcast_packet(i);
 	}
 
-	// #ifdef DE_BUG
-	// 	debug()
-	// #endif
+	#ifdef DE_BUG
+		debug(packet)
+	#endif
 
 	// step 2
 	checker();

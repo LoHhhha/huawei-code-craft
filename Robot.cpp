@@ -326,7 +326,7 @@ void Robot::recover(){
 // 成功时返回true并设置robot.target_berth_id，否则false
 // 注意：请在拿到货物后调用；最近的泊位根据的是机器人所在位置；调用后需要立即检查是否需要走
 bool Robot::go_to_nearest_berth(){
-	if(this->status==0||this->packet_id==-1){
+	if(this->status==0||this->packet_id==-1||!this->path.empty()){
 		return false;
 	}
 

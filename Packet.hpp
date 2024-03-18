@@ -9,7 +9,7 @@ struct Packet {
 	int status;		// 货物状态：-1：未被预定，[0,ROBOT_NUM)机器人预定 [ROBOT_NUM,2*ROBOT_NUM)机器人拿取
 
 	Packet() = default;
-	Packet(int _id, int _x, int _y, int _value, int _timeout) : id(_id), x(_x), y(_y), value(_value), timeout(_timeout) {}
+	Packet(int _id, int _x, int _y, int _value, int _timeout) : id(_id), x(_x), y(_y), value(_value), timeout(_timeout), status(-1) {}
 	
 	bool broadcast();
 
