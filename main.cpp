@@ -173,9 +173,9 @@ void solve(){
 		broadcast_packet(i);
 	}
 
-	#ifdef DE_BUG
-		debug(packet)
-	#endif
+	// #ifdef DE_BUG
+	// 	debug(packet)
+	// #endif
 
 	// step 2
 	checker();

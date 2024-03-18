@@ -61,21 +61,26 @@ void choose_best_berth(int num){
 		qu.push((x+3)*GRAPH_SIZE+(y));
 		qu.push((x+3)*GRAPH_SIZE+(y+3));
 
-		int current_dict=0;
+		berths_to_point_dict[x][y][idx] = 0;
+		berths_to_point_dict[x+3][y][idx] = 0;
+		berths_to_point_dict[x][y+3][idx] = 0;
+		berths_to_point_dict[x+3][y+3][idx] = 0;
+
+		int current_dict=1;
 		while (!qu.empty()) {
 			int qn = qu.size();
 			while (qn--) {
 				auto point_hash = qu.front();
 				qu.pop();
 				int current_x = point_hash/GRAPH_SIZE, current_y = point_hash%GRAPH_SIZE;
-				berths_to_point_dict[current_x][current_y][idx] = 0;
 				for(auto &[dx,dy]:dir){
 					int next_x = current_x+dx, next_y = current_y+dy;
 					if (next_x>=GRAPH_SIZE || next_y>=GRAPH_SIZE || next_x<0 || next_y<0) {
 						continue;
 					}
-					if(robot_can_go[next_x][next_y]&&berths_to_point_dict[next_x][next_y][idx]!=INT_INF){
+					if(robot_can_go[next_x][next_y]&&berths_to_point_dict[next_x][next_y][idx]==INT_INF){
 						qu.push(next_x*GRAPH_SIZE+next_y);
+						berths_to_point_dict[next_x][next_y][idx]=current_dict;
 					}
 				}
 			}
@@ -91,7 +96,7 @@ void choose_best_berth(int num){
 		ll tol_point_dict=0,reachable_point=0,tol_transport_time=0,tol_load_time=0;
 		for(int i=0;i<GRAPH_SIZE;i++){
 			for(int j=0;j<GRAPH_SIZE;j++){
-				if(graph[i][j]!=-1){
+				if(robot_can_go[i][j]){
 					int min_dict_berth_id=-1;
 					for(int idx=0;idx<BERTH_NUM;idx++){
 						if(current_use_berth[idx]){
@@ -100,7 +105,7 @@ void choose_best_berth(int num){
 							}
 						}
 					}
-					if(berths_to_point_dict[i][j][min_dict_berth_id]!=INT_INF){
+					if(min_dict_berth_id!=-1&&berths_to_point_dict[i][j][min_dict_berth_id]!=INT_INF){
 						reachable_point++;
 					}
 					tol_point_dict+=berths_to_point_dict[i][j][min_dict_berth_id];
@@ -125,16 +130,16 @@ void choose_best_berth(int num){
 		};
 
 		// 优先级1：能到达更多的点
-		if(best_reachable_point>reachable_point){
+		if(best_reachable_point<reachable_point){
 			swap();
 		}
 		else if(best_reachable_point==reachable_point){
-			// 优先级2：能更快到达点
+			// 优先级2：总距离短
 			if(best_tol_point_dict>tol_point_dict){
 				swap();
 			}
 			else if(best_tol_point_dict==tol_point_dict){
-				// 优先级3：能更快运货
+				// 优先级3：总运输时间短
 				if(best_tol_transport_time>tol_transport_time){
 					swap();
 				}
@@ -200,6 +205,17 @@ void choose_best_berth(int num){
 			boat_idx++;
 		}
 	}
+	
+	// debug
+	string choose_info;
+	for(int i=0;i<BERTH_NUM;i++){
+		if(use_berth[i]){
+			choose_info+=to_string(i);
+			choose_info+=" ";
+		}
+	}
+	if(!choose_info.empty())choose_info.pop_back();
+	fprintf(stderr,"#Note(Util::choose_best_berth): choose berth(%s).\n",choose_info.c_str());
 }
 
 // ---------- end init ----------
