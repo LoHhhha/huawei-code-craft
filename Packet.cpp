@@ -77,7 +77,7 @@ bool Packet::broadcast() {
 						isok = true;
 						break;
 					} else if (rb.packet_id == -1) {	// 有将要取的物品，已经规划好了路径，判断是否将货物重新分配给他
-						auto origin_packet = packet[rb.packet_id];
+						auto origin_packet = packet[rb.target_packet_id];
 						int val1 = this->value;	// 当前货物价值
 						int val2 = origin_packet.value;	// 将要取的货物价值
 						int t1 = rb.get_dict_to(this->x, this->y) - frame;	// 机器人到达当前货物所需时间

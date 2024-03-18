@@ -10,11 +10,11 @@
 
 #define DE_BUG		// 调试模式
 #define DEBUG_STATE 1	// 调试模式： 0：关闭，1：终端，2：cph
-#define DEBUG_FRAME 2
+#define DEBUG_FRAME 2	// 调试模式：调试帧数
 
 
-#ifdef DE_BUG
-	#define FRAME_TO_RUN DEBUG_FRAME
+#ifdef DE_BUG	
+	#define FRAME_TO_RUN DEBUG_FRAME	
 	#define THIS_DEBUG_STATE DEBUG_STATE
 #else
 	#define FRAME_TO_RUN FRAME_COUNT
@@ -69,6 +69,10 @@ void init() {
 	// 在这里写初始化代码
 	get_robot_can_go();
 	choose_best_berth(min(BOAT_NUM,BERTH_NUM));
+
+	#ifdef DE_BUG
+		debug(graph, robot_can_go, go_to_which_berth)
+	#endif
 
 	cout << "OK" << endl << flush;
 }
@@ -216,10 +220,10 @@ int main() {
 		// NEWLINE = true;	// 是否换行，会作用于容器内的对象，覆盖SEP
 	#endif
 	#if (THIS_DEBUG_STATE == 1)	// 调试模式： 0：关闭，1：终端，2：cph
-		freopen("judge_output.txt", "r", stdin);
-		// freopen("debug/user_output.txt", "w", stdout);
+		freopen("input.txt", "r", stdin);
+		freopen("user_output.txt", "w", stdout);
 	#endif
-	freopen("debug/debug_output.txt", "w", stderr);	// 重定向错误流
+	freopen("debug_output.txt", "w", stderr);	// 重定向错误流
 
 	init();		// 初始化
 	for (int i=1;i<=FRAME_TO_RUN;i++) {

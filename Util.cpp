@@ -223,7 +223,7 @@ bool generate_packet(int x, int y, int packet_money) {
 
 // 广播货物信息
 void broadcast_packet(int packet_id) {
-	auto p = packet[packet_id];	// 在货物表中添加
+	auto &p = packet[packet_id];	// 在货物表中添加
 	// 广播货物信息
 	bool is_assigned = p.broadcast();	// 是否已被分配
 	if (!is_assigned) {
