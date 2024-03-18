@@ -1,5 +1,5 @@
+#include "Param.hpp"
 #include"Boat.hpp"
-
 
 
 // ---------- begin 重载输出流 ----------

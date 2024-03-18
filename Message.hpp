@@ -1,7 +1,5 @@
 #pragma once
 
-#include "Param.hpp"
-
 
 // 已支持处理事件：
 // 与Msg事件序号对应
