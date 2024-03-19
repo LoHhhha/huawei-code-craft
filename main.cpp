@@ -8,6 +8,7 @@
 
 
 
+
 // 初始化
 void init() {
 	// 地图初始化
@@ -74,7 +75,7 @@ int get_input() {
 
 	if(tmp_frame!=frame+1){
 		fprintf(stderr, "#Error: [%d]get_input:: TimeOut, %d.\n", frame, tmp_frame);
-		//exit(-1);
+		exit(-1);
 	}
 
 	frame=tmp_frame;
@@ -98,15 +99,6 @@ int get_input() {
 		// todo：packet_id待处理
 		if (!have_packet) {
 			robot[i].packet_id = -1;
-		}
-		else{
-			if(robot[i].target_packet_id!=-1){
-				robot[i].packet_id=robot[i].target_packet_id;
-			}
-			else if(robot[i].packet_id==-1){
-				fprintf(stderr, "#Error(main::get_input): [%d]Checker:: Robot::%d packet info error.\n", frame, i);
-				robot[i].packet_id=0;		// 异常情况
-			}
 		}
 
 		graph[robot[i].x][robot[i].y] ^= ROBOT_BIT;	// 机器人上一帧位置清空
@@ -137,7 +129,7 @@ void checker(){
 	// 不太可能出现
 	for(int i=0;i<ROBOT_NUM;i++){
 		if(!robot[i].status){
-			fprintf(stderr, "#Error(main::checker): [%d]Checker:: Robot::%d detect a crush.\n", frame, i);
+			fprintf(stderr, "#Error: [%d]Checker:: Robot::%d detect a crush.\n", frame, i);
 			robot[i].recover();
 		}
 	}
@@ -168,9 +160,9 @@ void solve(){
 
 	// step 1
 	int goods_num = get_input();	// 获取帧输入
-	// for (int i=packet_id-goods_num+1;i<=packet_id;i++) {	// 广播新生成的货物（在结束帧输入后进行）
-	// 	broadcast_packet(i);
-	// }
+	for (int i=packet_id-goods_num+1;i<=packet_id;i++) {	// 广播新生成的货物（在结束帧输入后进行）
+		broadcast_packet(i);
+	}
 
 	// #ifdef DE_BUG
 	// 	debug(packet)
@@ -208,17 +200,13 @@ void solve(){
 	}
 
 	cout << "OK" << endl << flush;
-
-
-	// for(int i=0;i<ROBOT_NUM;i++){
-	// 	robot[i].update_dict();
-	// }
 }
 
 
 int main() {
+	// ios::sync_with_stdio(0), cin.tie(0), cout.tie(0);
 	#ifdef DE_BUG
-		SEP = "\n";	// 输出分隔符，默认为"  "，不会作用于容器内的对象
+		// SEP = "\n";	// 输出分隔符，默认为"  "，不会作用于容器内的对象
 		// NEWLINE = true;	// 是否换行，会作用于容器内的对象，覆盖SEP
 	#endif
 	#if (THIS_DEBUG_STATE == 1)	// 调试模式： 0：关闭，1：终端，2：cph

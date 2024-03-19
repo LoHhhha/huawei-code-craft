@@ -19,6 +19,7 @@ ostream& operator<<(ostream& os, const Packet& packet) {
 
 // ---------- begin Packet方法实现 ----------
 
+// 最坏时间复杂度：O(4e4(bfs) + 1e6(update_dict) + 1e5(set_and_book_a_path_to))
 // 每当有货物生成时调用该方法（貌似仅在货物新生成时调用），向附近最合适的 *一个或0个* 机器人广播货物信息
 // 返回值：是否成功分配
 bool broadcast_vis[GRAPH_SIZE][GRAPH_SIZE];

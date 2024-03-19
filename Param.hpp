@@ -3,13 +3,13 @@
 #include<bits/stdc++.h>
 
 
-// #define DE_BUG		// 调试模式
+#define DE_BUG		// 调试模式
 #define DEBUG_STATE 1	// 调试模式： 0：关闭，1：终端，2：cph
-#define DEBUG_FRAME 15000	// 调试模式：调试帧数
+#define DEBUG_FRAME 30	// 调试模式：调试帧数
 
 #define ENABLE_STDERR   // 开启stderr输出
 
-#ifdef DE_BUG	
+#ifdef DE_BUG	 
 	#define FRAME_TO_RUN DEBUG_FRAME	
 	#define THIS_DEBUG_STATE DEBUG_STATE
 #else
