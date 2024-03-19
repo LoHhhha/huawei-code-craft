@@ -6,27 +6,6 @@
 #include "Boat.hpp"
 #include "Berth.hpp"
 
-#define endl '\n'
-
-#define DE_BUG		// 调试模式
-#define DEBUG_STATE 1	// 调试模式： 0：关闭，1：终端，2：cph
-#define DEBUG_FRAME 5	// 调试模式：调试帧数
-
-
-#ifdef DE_BUG	
-	#define FRAME_TO_RUN DEBUG_FRAME	
-	#define THIS_DEBUG_STATE DEBUG_STATE
-#else
-	#define FRAME_TO_RUN FRAME_COUNT
-	#define THIS_DEBUG_STATE 0
-#endif
-
-#define OUTPUT_DEBUG_INFO	// 输出调试信息
-#ifdef OUTPUT_DEBUG_INFO
-	#include "DEBUG.h"
-    using namespace DEBUG_;
-#endif
-
 
 
 // 初始化
@@ -193,9 +172,7 @@ void solve(){
 
 	// step 3
 	for(int i=0;i<ROBOT_NUM;i++){
-		if(robot[i].packet_id==-1&&robot[i].target_packet_id==-1){
-			robot[i].find_a_best_packet();
-		}
+		robot[i].find_a_best_packet();
 	}
 	for(int i=0;i<ROBOT_NUM;i++){
 		robot[i].go_to_nearest_berth();
@@ -235,15 +212,24 @@ int main() {
 		freopen("user_output.txt", "w", stdout);
 	#endif
 	freopen("debug_output.txt", "w", stderr);	// 重定向错误流
+	#ifndef ENABLE_STDERR
+		fprintf(stderr,"ENABLE_STDERR=false.\n");
+		freopen("/dev/null", "w", stderr);	// 重定向错误流
+	#endif
 
+
+	clock_t start,end;
+	start=clock();
 	init();		// 初始化
+	end=clock();
+	fprintf(stderr,"#Note(main::init): Init Using %fms.\n\n",double(end-start));
+
 	for (int i=1;i<=FRAME_TO_RUN;i++) {
-		clock_t start,end;
 		start=clock();
 		solve();
 		end=clock();
-		fprintf(stderr,"#Note(main): [%d]Using %fs.\n\n",frame,double(end-start)/CLOCKS_PER_SEC);
-		cout.flush();
+		fprintf(stderr,"#Note(main::solve): [%d]Using %fms.\n\n",frame,double(end-start));
+		cout<<double(end-start)<<endl;
 	}
 
 	return 0;

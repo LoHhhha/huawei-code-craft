@@ -1,4 +1,5 @@
 #include "Param.hpp"
+#include "Util.hpp"
 #include "Message.hpp"
 #include "Robot.hpp"
 #include "Packet.hpp"
@@ -20,11 +21,16 @@ ostream& operator<<(ostream& os, const Packet& packet) {
 
 // 每当有货物生成时调用该方法（貌似仅在货物新生成时调用），向附近最合适的 *一个或0个* 机器人广播货物信息
 // 返回值：是否成功分配
+bool broadcast_vis[GRAPH_SIZE][GRAPH_SIZE];
 bool Packet::broadcast() {
 	queue<pair<int, int>> qu;	// point
 	qu.push({x, y});
-	vector<vector<int>> vis(GRAPH_SIZE, vector<int>(GRAPH_SIZE, 0));
-	vis[x][y] = 1;
+	for(int i=0;i<GRAPH_SIZE;i++){
+		for(int j=0;j<GRAPH_SIZE;j++){
+			broadcast_vis[i][j]=false;
+		}
+	}
+	broadcast_vis[x][y] = true;
 
 	int step = 0;
 	bool isok = false;
@@ -38,7 +44,7 @@ bool Packet::broadcast() {
 			// int current_x = point_hash/GRAPH_SIZE, current_y = point_hash%GRAPH_SIZE;
 			for (auto &[tx, ty]:dir) {
 				int next_x = current_x+tx, next_y = current_y+ty;
-				if (next_x>=GRAPH_SIZE || next_y>=GRAPH_SIZE || next_x<0 || next_y<0 || vis[next_x][next_y]) {	// 越界或已访问
+				if (next_x>=GRAPH_SIZE || next_y>=GRAPH_SIZE || next_x<0 || next_y<0 || broadcast_vis[next_x][next_y]) {	// 越界或已访问
 					continue;
 				}
 				if (graph[next_x][next_y] == -1) {	// 障碍
@@ -73,7 +79,7 @@ bool Packet::broadcast() {
 							return false;
 						}
 
-						rb.book_get_packet_event(rb.shortest_dict[this->x][this->y]);	// 预定取货事件
+						rb.book_get_packet_event(rb.get_dict_to(this->x,this->y));	// 预定取货事件
 						isok = true;
 						break;
 					} else if (rb.packet_id == -1) {	// 有将要取的物品，已经规划好了路径，判断是否将货物重新分配给他
@@ -88,6 +94,9 @@ bool Packet::broadcast() {
 						auto calc = [](int val, int t) { return double(val)/(t+1); };	// 计算性价比
 						if (calc(val1, t1) / calc(val2, t2) >= 1.15) {	// 换货物的性价比大于一定比例
 							this->status = rb.id;
+
+							packet_unbook(rb.target_packet_id);
+
 							origin_packet.status = -1;
 							rb.target_packet_id = this->id;
 							rb.target_berth_id = -1;
@@ -99,13 +108,14 @@ bool Packet::broadcast() {
 								fprintf(stderr,"#Warning(Packet::broadcast): [%d]Robot::%d(%d,%d) fail to set path to Packet::%d(%d,%d).\n", frame, rb.id, rb.x, rb.y, this->id, this->x, this->y);
 								return false;
 							}
-							rb.book_get_packet_event(rb.shortest_dict[this->x][this->y]);	// 预定取货事件
+							rb.book_get_packet_event(rb.get_dict_to(this->x,this->y));	// 预定取货事件
+
 							isok = true;
 							break;
 						}
 					}
 				}
-				vis[next_x][next_y] = 1;
+				broadcast_vis[next_x][next_y] = true;
 				qu.push({next_x, next_y});
 			}
 			if (isok) {

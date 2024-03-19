@@ -2,13 +2,34 @@
 
 #include<bits/stdc++.h>
 
-using namespace std;
 
+// #define DE_BUG		// 调试模式
+#define DEBUG_STATE 1	// 调试模式： 0：关闭，1：终端，2：cph
+#define DEBUG_FRAME 5	// 调试模式：调试帧数
+
+#define ENABLE_STDERR   // 开启stderr输出
+
+#ifdef DE_BUG	
+	#define FRAME_TO_RUN DEBUG_FRAME	
+	#define THIS_DEBUG_STATE DEBUG_STATE
+#else
+	#define FRAME_TO_RUN FRAME_COUNT
+	#define THIS_DEBUG_STATE 0
+#endif
+
+#define OUTPUT_DEBUG_INFO	// 输出调试信息
+#ifdef OUTPUT_DEBUG_INFO
+	#include "DEBUG.h"
+    using namespace DEBUG_;
+#endif
+
+
+
+using namespace std;
 using ll = long long;
 using pii = pair<int, int>;
 
-// #define int ll
-// #define endl "\n"	// 是否保留待定
+
 #define OPTIO std::ios::sync_with_stdio(0), std::cin.tie(0), std::cout.tie(0)
 #define LLONG_INF 0x3f3f3f3f3f3f3f3f
 #define INT_INF 0x3f3f3f3f
@@ -25,6 +46,7 @@ using pii = pair<int, int>;
 #define BERTH_BIT 	1	        // 泊位标记
 #define ROBOT_BIT 	2	        // 机器人标记
 #define PACKET_BIT 	4	        // 货物标记
+#define endl '\n'
 
 
 struct Boat;

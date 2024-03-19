@@ -21,6 +21,30 @@ ostream& operator<<(ostream& os, const Robot& rb) {
 // ---------- end 重载输出流 ----------
 
 
+// 判断是否可以在tframe从(current_x,current_y)到达(next_x,next_y)，到达(next_x,next_y)是tframe+1
+inline bool check_if_can_go(int current_x, int current_y, int next_x, int next_y, int tframe) {
+	// 判断是否碰墙/海/机器人
+	if (graph[next_x][next_y]==-1 || graph[next_x][next_y]&ROBOT_BIT) {
+		return false;
+	}
+
+	// 判断是否重叠
+	auto next_it = book[next_x][next_y].find(tframe+1);
+	if (next_it != book[next_x][next_y].end()) {
+		return false;
+	}
+
+	// 判断是否对撞
+	next_it = book[next_x][next_y].find(tframe);
+	auto current_it = book[current_x][current_y].find(tframe+1);
+	if (next_it!=book[next_x][next_y].end() && current_it!=book[current_x][current_y].end()) {
+		return next_it->second != current_it->second;
+	}
+
+	return true;
+};
+
+
 // ---------- begin Robot方法实现 ----------
 
 // 期望复杂度：1e6(4e4*1e2)
@@ -38,42 +62,19 @@ void Robot::update_dict() {
 	int robot_current_x = this->x, robot_current_y = this->y;
 	this->shortest_dict[robot_current_x][robot_current_y] = frame;
 
-
-	auto check_if_can_go = [&](int current_x, int current_y, int next_x, int next_y, int tframe) {
-		// 判断是否碰墙/海/机器人
-		if (graph[next_x][next_y]==-1 || graph[next_x][next_y]&ROBOT_BIT) {
-			return false;
-		}
-
-		// 判断是否重叠
-		auto next_it = book[next_x][next_y].find(tframe+1);
-		if (next_it != book[next_x][next_y].end()) {
-			return false;
-		}
-
-		// 判断是否对撞
-		next_it = book[next_x][next_y].find(tframe);
-		auto current_it = book[current_x][current_y].find(tframe+1);
-		if (next_it!=book[next_x][next_y].end() && current_it!=book[current_x][current_y].end()) {
-			return next_it->second != current_it->second;
-		}
-
-		return true;
+	// int: {tframe 14, point_x 8, point_y 8}
+	auto get_info=[&](int frame,int nx,int ny){
+		return (frame<<16)+(nx<<8)+ny;
 	};
 
-	// pii: {point_hash, tframe}
-	auto cmp = [&](auto &p1, auto &p2) {
-		return p1.second > p2.second;
-	};
-	priority_queue<pair<int, int>, vector<pair<int, int>>, decltype(cmp)> pq{cmp};
-
-	pq.push({robot_current_x*GRAPH_SIZE+robot_current_y, frame});
+	priority_queue<int, vector<int>, greater<>> pq;
+	pq.push(get_info(frame,robot_current_x,robot_current_y));
 
 	while (!pq.empty()) {
-		auto [point_hash, tframe] = pq.top();
+		auto info = pq.top();
 		pq.pop();
 
-		int point_x = point_hash/GRAPH_SIZE, point_y = point_hash%GRAPH_SIZE;
+		int tframe=info>>16, point_x = (info>>8)&255, point_y = info&255;
 
 		if(tframe > this->shortest_dict[point_x][point_y]) {
 			continue;
@@ -88,7 +89,7 @@ void Robot::update_dict() {
 
 			if(tframe+1<this->shortest_dict[next_x][next_y] && check_if_can_go(point_x, point_y, next_x, next_y, tframe)) {
 				this->shortest_dict[next_x][next_y] = tframe+1;
-				pq.push({next_x*GRAPH_SIZE+next_y, tframe+1});
+				pq.push(get_info(tframe+1,next_x,next_y));
 			}
 		}
 
@@ -117,7 +118,7 @@ void Robot::update_dict() {
 			}
 			if (pos_next_frame < this->shortest_dict[next_x][next_y]) {
 				this->shortest_dict[next_x][next_y] = pos_next_frame;
-				pq.push({next_x*GRAPH_SIZE+next_y, pos_next_frame});
+				pq.push(get_info(pos_next_frame,next_x,next_y));
 				sleep[next_x][next_y] = pos_next_frame - tframe;
 			}
 		}
@@ -136,7 +137,7 @@ int Robot::get_dict_to(int tx,int ty) {
 // 注意：此操作会调用get_dict_to，若不可达将返回false，使用时注意甄别
 bool Robot::set_and_book_a_path_to(int tx, int ty) {
 	if(tx<0||ty<0||tx>=GRAPH_SIZE||ty>=GRAPH_SIZE){
-		fprintf(stderr,"#Error(Robot::set_and_book_a_path_to): [%d]Robot::%d(%d,%d) fail to set path to point(%d,%d) because point invalid.\n",frame,this->id,this->x,this->y,tx,ty);
+		// fprintf(stderr,"#Error(Robot::set_and_book_a_path_to): [%d]Robot::%d(%d,%d) fail to set path to point(%d,%d) because point invalid.\n",frame,this->id,this->x,this->y,tx,ty);
 		return false;
 	}
 
@@ -196,7 +197,7 @@ bool Robot::set_and_book_a_path_to(int tx, int ty) {
 // 注意：当没有路径时，返回false
 bool Robot::go_to_next_point() {
 	if (this->path.empty()) {
-		fprintf(stderr,"#Warning(Robot::go_to_next_point): [%d]Robot::%d(%d,%d) do not have a target point.\n", frame, this->id, this->x, this->y);
+		// fprintf(stderr,"#Warning(Robot::go_to_next_point): [%d]Robot::%d(%d,%d) do not have a target point.\n", frame, this->id, this->x, this->y);
 		return false;
 	}
 
@@ -289,7 +290,7 @@ void Robot::pull_packet(){
 // 			1									1									1						理论上不可能出现 target_packet_id=-1
 void Robot::recover(){
 	if(this->status){
-		fprintf(stderr,"#Warning: [%d]Robot::%d(%d,%d) do not need recover.\n", frame, this->id, this->x, this->y);
+		// fprintf(stderr,"#Warning: [%d]Robot::%d(%d,%d) do not need recover.\n", frame, this->id, this->x, this->y);
 		return;
 	}
 
@@ -378,8 +379,8 @@ bool Robot::go_to_nearest_berth(){
 // 具体算法：寻找value/dict最大的包裹
 // 注意：本函数可多次调用【只要未拿到包裹可随时更新最优】
 bool Robot::find_a_best_packet(){
-	if(this->status==0||this->packet_id!=-1){
-		fprintf(stderr,"#Warning(Robot::find_a_best_packet): [%d]Robot::%d(%d,%d) cannot get a packet, status=%d, packet_id=%d.\n", frame, this->id, this->x, this->y, this->status, this->packet_id);
+	if(unbooked_packet.empty()||this->status==0||this->packet_id!=-1){
+		// fprintf(stderr,"#Warning(Robot::find_a_best_packet): [%d]Robot::%d(%d,%d) cannot get a packet, status=%d, packet_id=%d, unbooked_packet.empty()=%d.\n", frame, this->id, this->x, this->y, this->status, this->packet_id,unbooked_packet.empty());
 		return false;
 	}
 
@@ -387,20 +388,14 @@ bool Robot::find_a_best_packet(){
 
 	int best_packet_id=-1;
 	double best_rate=-1;
-	for(int i=0;i<GRAPH_SIZE;i++){
-		for(int j=0;j<GRAPH_SIZE;j++){
-			int packet_hash=i*GRAPH_SIZE+j;
-			
-			if(graph[i][j]&PACKET_BIT){
-				int packet_id=hash2packet[packet_hash];
-				// 抵达货物时不会超时
-				if(unbooked_packet.count(packet_id)&&packet[packet_id].timeout>this->shortest_dict[i][j]){
-					double current_rate=(packet[packet_id].value)/(this->shortest_dict[i][j]-frame+go_to_which_berth[i][j].second);
-					if(current_rate>best_rate){
-						best_rate=current_rate;
-						best_packet_id=packet_id;
-					}
-				}
+	for(auto &packet_id:unbooked_packet){
+		auto &p=packet[packet_id];
+		// 抵达货物时不会超时
+		if(packet[packet_id].timeout>this->shortest_dict[p.x][p.y]){
+			double current_rate=(packet[packet_id].value)/(this->shortest_dict[p.x][p.y]-frame+go_to_which_berth[p.x][p.y].second);
+			if(current_rate>best_rate){
+				best_rate=current_rate;
+				best_packet_id=packet_id;
 			}
 		}
 	}
@@ -409,6 +404,7 @@ bool Robot::find_a_best_packet(){
 	if(this->target_packet_id!=best_packet_id&&best_packet_id!=-1){
 		if(this->target_packet_id!=-1)packet_unbook(this->target_packet_id);
 		packet_be_booked(best_packet_id,this->id);
+
 		int best_packet_x=packet[best_packet_id].x,best_packet_y=packet[best_packet_id].y;
 		this->cancel_path_book();
 		this->set_and_book_a_path_to(best_packet_x,best_packet_y);
