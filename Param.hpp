@@ -5,7 +5,7 @@
 
 // #define DE_BUG		// 调试模式
 #define DEBUG_STATE 1	// 调试模式： 0：关闭，1：终端，2：cph
-#define DEBUG_FRAME 5	// 调试模式：调试帧数
+#define DEBUG_FRAME 15000	// 调试模式：调试帧数
 
 #define ENABLE_STDERR   // 开启stderr输出
 
@@ -63,10 +63,10 @@ extern int frame;	// 当前帧数
 extern int money;	// 当前金钱数
 
 // ---------- begin graph ----------
-extern vector<vector<int>> graph;	// 地图 vector 障碍:-1 空地:0 停泊点:1 机器人:2 货物:4 （二进制）
-extern vector<vector<map<int,int>>> book;	// pii:{book_frame,id} 点被预定的情况
+extern int graph[GRAPH_SIZE][GRAPH_SIZE];	                // 地图 vector 障碍:-1 空地:0 停泊点:1 机器人:2 货物:4 （二进制）
+extern map<int,int> book[GRAPH_SIZE][GRAPH_SIZE];	        // pii:{book_frame,id} 点被预定的情况
 extern pii go_to_which_berth[GRAPH_SIZE][GRAPH_SIZE];		// 场上每一个点去哪一个泊位{id, dict} 注意：当id==-1或者dict==INT_INF时不可达！
-extern bool robot_can_go[GRAPH_SIZE][GRAPH_SIZE];  // 维护机器人能到达的点
+extern bool robot_can_go[GRAPH_SIZE][GRAPH_SIZE];           // 维护机器人能到达的点
 // ---------- end graph ----------
 
 

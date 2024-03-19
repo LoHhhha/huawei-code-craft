@@ -115,6 +115,7 @@ void Robot::update_dict() {
 					pos_next_frame = tmp_it->first+1;
 					break;
 				}
+				tmp_it++;
 			}
 			if (pos_next_frame < this->shortest_dict[next_x][next_y]) {
 				this->shortest_dict[next_x][next_y] = pos_next_frame;
@@ -336,6 +337,7 @@ void Robot::recover(){
 // 注意：请在拿到货物后调用；最近的泊位根据的是机器人所在位置；调用后需要立即检查是否需要走
 bool Robot::go_to_nearest_berth(){
 	if(this->status==0||this->packet_id==-1||!this->path.empty()){
+		// fprintf(stderr,"#Warning(Robot::go_to_nearest_berth): [%d]Robot::%d(%d,%d) packet_id=%d.\n", frame, this->id, this->x, this->y, this->packet_id);
 		return false;
 	}
 
@@ -351,15 +353,16 @@ bool Robot::go_to_nearest_berth(){
 	int point_hash=-1,nearest_dict=INT_INF;
 	for(int i=0;i<3;i++){
 		for(int j=0;j<3;j++){
-			int current_dict=this->get_dict_to(i,j);
+			int current_dict=this->get_dict_to(i+berth[nearest_berth].x,j+berth[nearest_berth].y);
 			if(current_dict!=-1&&current_dict<nearest_dict){
 				nearest_dict=current_dict;
-				point_hash=i*GRAPH_SIZE+j;
+				point_hash=(i+berth[nearest_berth].x)*GRAPH_SIZE+j+berth[nearest_berth].y;
 			}
 		}
 	}
 	// 暂时不可达
 	if(point_hash==-1){
+		fprintf(stderr,"#Error(Robot::go_to_nearest_berth): [%d]Robot::%d(%d,%d) cann`t move to the berth.\n", frame, this->id, this->x, this->y);		
 		return false;
 	}
 
