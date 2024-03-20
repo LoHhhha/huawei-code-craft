@@ -160,8 +160,15 @@ void solve(){
 
 	// step 1
 	int goods_num = get_input();	// 获取帧输入
+	vector<Packet*> new_packet;
 	for (int i=packet_id-goods_num+1;i<=packet_id;i++) {	// 广播新生成的货物（在结束帧输入后进行）
-		broadcast_packet(i);
+		new_packet.push_back(&packet[i]);
+	}
+	sort(new_packet.begin(), new_packet.end(), [&](Packet *a, Packet *b) {	// 按照货物价值排序，减少换货物导致多次update的情况
+		return a->value > b->value;
+	});
+	for (auto &pk:new_packet) {
+		pk->broadcast();
 	}
 
 	// #ifdef DE_BUG

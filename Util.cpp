@@ -219,7 +219,7 @@ bool generate_packet(int x, int y, int packet_money) {
 		packet[packet_id] = p;	// 在货物表中添加
 		hash2packet[x*GRAPH_SIZE+y] = packet_id;	// 在哈希表中添加 [[x*GRAPH_SIZE+y] -> packet_id]
 		graph[x][y] ^= PACKET_BIT;	// 在图中添加货物标记
-		unbooked_packet.insert(packet_id);
+		unbooked_packet.insert(packet_id);		// 默认未分配
 		msg_handler.add_an_event(frame + PACKET_TIME_OUT-1, packet_id, MSG_PACKET_NEED_DELETE);		// 事件在每帧结束时执行
 		return true;
 	}
@@ -232,8 +232,8 @@ void broadcast_packet(int packet_id) {
 	auto &p = packet[packet_id];	// 在货物表中添加
 	// 广播货物信息
 	bool is_assigned = p.broadcast();	// 是否已被分配
-	if (!is_assigned) {
-		unbooked_packet.insert(packet_id);	// 添加到未分配货物列表
+	if (is_assigned) {
+		unbooked_packet.erase(packet_id);	// 从未分配货物中删除
 	}
 }
 

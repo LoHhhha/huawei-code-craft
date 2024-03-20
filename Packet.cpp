@@ -26,11 +26,7 @@ bool broadcast_vis[GRAPH_SIZE][GRAPH_SIZE];
 bool Packet::broadcast() {
 	queue<pair<int, int>> qu;	// point
 	qu.push({x, y});
-	for(int i=0;i<GRAPH_SIZE;i++){
-		for(int j=0;j<GRAPH_SIZE;j++){
-			broadcast_vis[i][j]=false;
-		}
-	}
+	memset(broadcast_vis, false, sizeof(broadcast_vis));
 	broadcast_vis[x][y] = true;
 
 	int step = 0;
@@ -42,7 +38,6 @@ bool Packet::broadcast() {
 		while (qn--) {
 			auto [current_x, current_y] = qu.front(); qu.pop();
 			
-			// int current_x = point_hash/GRAPH_SIZE, current_y = point_hash%GRAPH_SIZE;
 			for (auto &[tx, ty]:dir) {
 				int next_x = current_x+tx, next_y = current_y+ty;
 				if (next_x>=GRAPH_SIZE || next_y>=GRAPH_SIZE || next_x<0 || next_y<0 || broadcast_vis[next_x][next_y]) {	// 越界或已访问
