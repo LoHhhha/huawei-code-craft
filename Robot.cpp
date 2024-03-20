@@ -55,75 +55,107 @@ void Robot::update_dict() {
 	for(int i=0;i<GRAPH_SIZE;i++) {
 		for(int j=0;j<GRAPH_SIZE;j++) {
 			this->shortest_dict[i][j] = INT_INF;
-			this->sleep[i][j] = 1;	// 默认等待1秒 即将移动时间看作等待
+			// this->sleep[i][j] = 1;	// 默认等待1秒 即将移动时间看作等待
 		}
 	}
 	
 	int robot_current_x = this->x, robot_current_y = this->y;
 	this->shortest_dict[robot_current_x][robot_current_y] = frame;
 
-	// int: {tframe 14, point_x 8, point_y 8}
-	auto get_info=[&](int frame,int nx,int ny){
-		return (frame<<16)+(nx<<8)+ny;
+	// int: {point_x 8, point_y 8}
+	auto get_hash=[&](int nx,int ny){
+		return (nx<<8)+ny;
 	};
 
-	priority_queue<int, vector<int>, greater<>> pq;
-	pq.push(get_info(frame,robot_current_x,robot_current_y));
+	queue<int>qu;
+	qu.push(get_hash(robot_current_x,robot_current_y));
 
-	while (!pq.empty()) {
-		auto info = pq.top();
-		pq.pop();
+	int tframe=frame;
+	while(!qu.empty()){
+		int qn=qu.size();
+		while(qn--){
+			auto point_hash=qu.front();
+			qu.pop();
 
-		int tframe=info>>16, point_x = (info>>8)&255, point_y = info&255;
+			int point_x = (point_hash>>8)&255, point_y = point_hash&255;
 
-		if(tframe > this->shortest_dict[point_x][point_y]) {
-			continue;
-		}
-
-		// 正常寻路
-		for (auto &[dx, dy]:dir) {
-			int next_x = point_x+dx, next_y = point_y+dy;
-			if (next_x>=GRAPH_SIZE || next_y>=GRAPH_SIZE || next_x<0 || next_y<0) {	// 越界
-				continue;
-			}
-
-			if(tframe+1<this->shortest_dict[next_x][next_y] && check_if_can_go(point_x, point_y, next_x, next_y, tframe)) {
-				this->shortest_dict[next_x][next_y] = tframe+1;
-				pq.push(get_info(tframe+1,next_x,next_y));
-			}
-		}
-
-		// 等待后寻路
-		// 等待的上界：book[point_x][point_y]第一个大于自己的帧数
-		auto upper_it = book[point_x][point_y].upper_bound(tframe);
-		int bound = INT_INF;
-		if (upper_it != book[point_x][point_y].end()) {
-			bound = upper_it->first;
-		}
-		for (auto &[dx,dy]:dir) {
-			int next_x = point_x+dx, next_y = point_y+dy;
-			if (next_x>=GRAPH_SIZE || next_y>=GRAPH_SIZE || next_x<0 || next_y<0) {
-				continue;
-			}
-
-			// 下一帧有人占用单元格，尝试等待
-			auto tmp_it = book[next_x][next_y].find(tframe+1);
-			int pos_next_frame = INT_INF;
-			// 首先需要满足不越过边界，此操作最多校验1e2次
-			while (tmp_it!=book[next_x][next_y].end() && tmp_it->first<bound) {
-				if (check_if_can_go(point_x, point_y, next_x, next_y, tmp_it->first+1)) {
-					pos_next_frame = tmp_it->first+1;
-					break;
+			for (auto &[dx, dy]:dir) {
+				int next_x = point_x+dx, next_y = point_y+dy;
+				if (next_x>=GRAPH_SIZE || next_y>=GRAPH_SIZE || next_x<0 || next_y<0) {	// 越界
+					continue;
 				}
-				tmp_it++;
-			}
-			if (pos_next_frame < this->shortest_dict[next_x][next_y]) {
-				this->shortest_dict[next_x][next_y] = pos_next_frame;
-				pq.push(get_info(pos_next_frame,next_x,next_y));
-				sleep[next_x][next_y] = pos_next_frame - tframe;
+
+				if(this->shortest_dict[next_x][next_y]==INT_INF && check_if_can_go(point_x, point_y, next_x, next_y, tframe)) {
+					this->shortest_dict[next_x][next_y] = tframe+1;
+					qu.push(get_hash(next_x,next_y));
+				}
 			}
 		}
+		tframe++;
 	}
+
+	// // int: {tframe 14, point_x 8, point_y 8}
+	// auto get_info=[&](int frame,int nx,int ny){
+	// 	return (frame<<16)+(nx<<8)+ny;
+	// };
+
+	// priority_queue<int, vector<int>, greater<>> pq;
+	// pq.push(get_info(frame,robot_current_x,robot_current_y));
+
+	// while (!pq.empty()) {
+	// 	auto info = pq.top();
+	// 	pq.pop();
+
+	// 	int tframe=info>>16, point_x = (info>>8)&255, point_y = info&255;
+
+	// 	if(tframe > this->shortest_dict[point_x][point_y]) {
+	// 		continue;
+	// 	}
+
+	// 	// 正常寻路
+	// 	for (auto &[dx, dy]:dir) {
+	// 		int next_x = point_x+dx, next_y = point_y+dy;
+	// 		if (next_x>=GRAPH_SIZE || next_y>=GRAPH_SIZE || next_x<0 || next_y<0) {	// 越界
+	// 			continue;
+	// 		}
+
+	// 		if(tframe+1<this->shortest_dict[next_x][next_y] && check_if_can_go(point_x, point_y, next_x, next_y, tframe)) {
+	// 			this->shortest_dict[next_x][next_y] = tframe+1;
+	// 			pq.push(get_info(tframe+1,next_x,next_y));
+	// 		}
+	// 	}
+
+	// 	// 等待后寻路
+	// 	// 等待的上界：book[point_x][point_y]第一个大于自己的帧数
+	// 	auto upper_it = book[point_x][point_y].upper_bound(tframe);
+	// 	int bound = INT_INF;
+	// 	if (upper_it != book[point_x][point_y].end()) {
+	// 		bound = upper_it->first;
+	// 	}
+	// 	for (auto &[dx,dy]:dir) {
+	// 		int next_x = point_x+dx, next_y = point_y+dy;
+	// 		if (next_x>=GRAPH_SIZE || next_y>=GRAPH_SIZE || next_x<0 || next_y<0) {
+	// 			continue;
+	// 		}
+
+	// 		// 下一帧有人占用单元格，尝试等待
+	// 		auto tmp_it = book[next_x][next_y].find(tframe+1);
+	// 		int pos_next_frame = INT_INF;
+	// 		// 首先需要满足不越过边界，此操作最多校验1e2次
+	// 		while (tmp_it!=book[next_x][next_y].end() && tmp_it->first<bound) {
+	// 			if (check_if_can_go(point_x, point_y, next_x, next_y, tmp_it->first+1)) {
+	// 				pos_next_frame = tmp_it->first+1;
+	// 				break;
+	// 			}
+	// 			tmp_it++;
+	// 		}
+	// 		if (pos_next_frame < this->shortest_dict[next_x][next_y]) {
+	// 			this->shortest_dict[next_x][next_y] = pos_next_frame;
+	// 			pq.push(get_info(pos_next_frame,next_x,next_y));
+	// 			sleep[next_x][next_y] = pos_next_frame - tframe;
+	// 		}
+	// 	}
+	// }
 }
 
 // 期望复杂度：1
@@ -166,7 +198,7 @@ bool Robot::set_and_book_a_path_to(int tx, int ty) {
 				continue;
 			}
 
-			if (frame_arrive-this->sleep[current_x][current_y] == this->shortest_dict[pre_x][pre_y]) {
+			if (frame_arrive == this->shortest_dict[pre_x][pre_y]) {
 				current_x = pre_x, current_y = pre_y;
 				frame_arrive = this->shortest_dict[pre_x][pre_y];
 				isok = true;

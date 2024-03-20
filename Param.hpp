@@ -5,7 +5,7 @@
 
 #define DE_BUG		// 调试模式
 #define DEBUG_STATE 1	// 调试模式： 0：关闭，1：终端，2：cph
-#define DEBUG_FRAME 30	// 调试模式：调试帧数
+#define DEBUG_FRAME 10	// 调试模式：调试帧数
 
 #define ENABLE_STDERR   // 开启stderr输出
 
