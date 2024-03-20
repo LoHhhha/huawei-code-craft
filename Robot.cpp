@@ -318,6 +318,7 @@ void Robot::pull_packet(){
 	berth[this->target_berth_id].current_wait_packet++;
 	delete_packet(this->packet_id);
 	this->target_berth_id=-1;
+	this->pre_pull_packet_frame=frame;
 }
 
 // 期望复杂度：1

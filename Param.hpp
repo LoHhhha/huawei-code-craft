@@ -7,6 +7,8 @@
 #define DEBUG_STATE 1	// 调试模式： 0：关闭，1：终端，2：cph
 #define DEBUG_FRAME 10	// 调试模式：调试帧数
 
+// #define ENABLE_PACKET_BROADCAST
+
 
 #ifdef DE_BUG	 
 	#define FRAME_TO_RUN DEBUG_FRAME	
@@ -47,7 +49,7 @@ using pii = pair<int, int>;
 #define BERTH_BIT 	1	        	// 泊位标记
 #define ROBOT_BIT 	2	        	// 机器人标记
 #define PACKET_BIT 	4	        	// 货物标记
-#define PACKET_SWITCH_RATE 5		// 换货比值
+#define PACKET_SWITCH_RATE 1.8		// 换货比值
 #define ARRIVE_PACKET_OFFSET 200	// 时间偏移
 #define endl '\n'
 

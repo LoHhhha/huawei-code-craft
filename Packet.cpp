@@ -101,6 +101,8 @@ bool Packet::broadcast() {
 						t1 += go_to_which_berth[this->x][this->y].second;	// 当前货物到达泊位所需时间
 						t2 += go_to_which_berth[origin_packet.x][origin_packet.y].second;	// 原货物到达泊位所需时间
 
+						t1 +=frame-rb.pre_pull_packet_frame;
+
 						auto calc = [](int val, int t)->double { return double(val)/(t+1); };	// 计算性价比
 						if (calc(val1, t1)>= calc(val2, t2)*PACKET_SWITCH_RATE) {	// 换货物的性价比大于一定比例
 							
