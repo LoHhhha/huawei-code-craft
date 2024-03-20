@@ -47,7 +47,7 @@ using pii = pair<int, int>;
 #define BERTH_BIT 	1	        // 泊位标记
 #define ROBOT_BIT 	2	        // 机器人标记
 #define PACKET_BIT 	4	        // 货物标记
-#define PACKET_SWITCH_RATE 1.2	// 换货比
+#define PACKET_SWITCH_RATE 2	// 换货比
 #define endl '\n'
 
 

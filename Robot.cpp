@@ -415,7 +415,7 @@ bool Robot::go_to_nearest_berth(){
 // 注意：本函数可多次调用【只要未拿到包裹可随时更新最优】
 bool Robot::find_a_best_packet(){
 	// 目前有货物未预定 且当前机器人不是在恢复状态 且没有拿到货物 且在泊位
-	if(unbooked_packet.empty()||this->status==0||this->packet_id!=-1||!berth_point_hash.count(this->x*GRAPH_SIZE+this->y)){
+	if(unbooked_packet.empty()||this->status==0||this->packet_id!=-1||this->target_packet_id!=-1){
 		// fprintf(stderr,"#Warning(Robot::find_a_best_packet): [%d]Robot::%d(%d,%d) cannot get a packet, status=%d, packet_id=%d, unbooked_packet.empty()=%d.\n", frame, this->id, this->x, this->y, this->status, this->packet_id,unbooked_packet.empty());
 		return false;
 	}
