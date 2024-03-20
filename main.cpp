@@ -74,7 +74,7 @@ int get_input() {
 	cin >> tmp_frame >> money;	// 获取帧数和金钱数
 
 	if(tmp_frame!=frame+1){
-		fprintf(stderr, "#Error: [%d]get_input:: TimeOut, %d.\n", frame, tmp_frame);
+		fprintf(stderr, "#Error(main::get_input): [%d]TimeOut, %d.\n", frame, tmp_frame);
 		exit(-1);
 	}
 
@@ -102,7 +102,8 @@ int get_input() {
 		}
 		else{
 			if(robot[i].target_packet_id==-1){
-				robot[i].packet_id = 0;			// 补全
+				fprintf(stderr, "#Warning(main::get_input): [%d]Robot::%d packet information disappear.\n", frame, i);
+				robot[i].packet_id = 0;				// 补全
 			}
 			else{
 				robot[i].packet_id = robot[i].target_packet_id;
@@ -169,7 +170,7 @@ void solve(){
 
 	// step 1
 	int goods_num = get_input();	// 获取帧输入
-	vector<Packet*> new_packet;
+	// vector<Packet*> new_packet;
 	// for (int i=packet_id-goods_num+1;i<=packet_id;i++) {	// 广播新生成的货物（在结束帧输入后进行）
 	// 	new_packet.push_back(&packet[i]);
 	// }
@@ -177,7 +178,9 @@ void solve(){
 	// 	return a->value > b->value;
 	// });
 	// for (auto &pk:new_packet) {
-	// 	pk->broadcast();
+	// 	if(!pk->broadcast()){
+	// 		break;
+	// 	}
 	// }
 
 	// #ifdef DE_BUG

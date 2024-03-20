@@ -33,21 +33,22 @@ using pii = pair<int, int>;
 #define OPTIO std::ios::sync_with_stdio(0), std::cin.tie(0), std::cout.tie(0)
 #define LLONG_INF 0x3f3f3f3f3f3f3f3f
 #define INT_INF 0x3f3f3f3f
-#define GRAPH_SIZE 200	        // 地图大小
-#define ROBOT_NUM 	10	        // 机器人数量
-#define BERTH_NUM 	10	        // 泊位数量
-#define BERTH_SIZE	4			// 泊位
-#define BOAT_NUM 	5	        // 船数量
-#define FRAME_COUNT 15000       // 模拟总帧数
-#define PACKET_TIME_OUT 1000    // 货物过期
-#define RIGHT 		0	        // 机器人方向：右
-#define LEFT 		1	        // 机器人方向：左
-#define UP 			2	        // 机器人方向：上
-#define DOWN 		3	        // 机器人方向：下
-#define BERTH_BIT 	1	        // 泊位标记
-#define ROBOT_BIT 	2	        // 机器人标记
-#define PACKET_BIT 	4	        // 货物标记
-#define PACKET_SWITCH_RATE 2	// 换货比
+#define GRAPH_SIZE 200	        	// 地图大小
+#define ROBOT_NUM 	10	        	// 机器人数量
+#define BERTH_NUM 	10	        	// 泊位数量
+#define BERTH_SIZE	4				// 泊位
+#define BOAT_NUM 	5	        	// 船数量
+#define FRAME_COUNT 15000       	// 模拟总帧数
+#define PACKET_TIME_OUT 1000    	// 货物过期
+#define RIGHT 		0	        	// 机器人方向：右
+#define LEFT 		1	        	// 机器人方向：左
+#define UP 			2	        	// 机器人方向：上
+#define DOWN 		3	        	// 机器人方向：下
+#define BERTH_BIT 	1	        	// 泊位标记
+#define ROBOT_BIT 	2	        	// 机器人标记
+#define PACKET_BIT 	4	        	// 货物标记
+#define PACKET_SWITCH_RATE 1.6		// 换货比值
+#define ARRIVE_PACKET_OFFSET 200	// 时间偏移
 #define endl '\n'
 
 

@@ -174,6 +174,11 @@ bool Robot::set_and_book_a_path_to(int tx, int ty) {
 		return false;
 	}
 
+	if(!this->path.empty()){
+		fprintf(stderr,"#Warning(Robot::set_and_book_a_path_to): [%d]Robot::%d(%d,%d) clear it`s path to set path to point(%d,%d).\n",frame,this->id,this->x,this->y,tx,ty);
+		this->cancel_path_book();
+	}
+	
 	int frame_arrive = get_dict_to(tx,ty);
 
 	if (frame_arrive == -1) {
@@ -187,7 +192,7 @@ bool Robot::set_and_book_a_path_to(int tx, int ty) {
 
 	int current_x = tx, current_y = ty;
 	while (current_x!=this->x || current_y!=this->y) {
-		this->path.push({frame_arrive-1, current_x*GRAPH_SIZE+current_y});
+		this->path.push_back({frame_arrive-1, current_x*GRAPH_SIZE+current_y});
 		book[current_x][current_y][frame_arrive] = this->id;
 
 		int isok = false;
@@ -234,7 +239,7 @@ bool Robot::go_to_next_point() {
 		return false;
 	}
 
-	auto [frame_to_go, point_hash] = this->path.top();
+	auto [frame_to_go, point_hash] = this->path.back();
 	int current_x = this->x, current_y = this->y;
 	int next_x = point_hash/GRAPH_SIZE, next_y = point_hash%GRAPH_SIZE;
 	if (frame == frame_to_go) {
@@ -259,7 +264,7 @@ bool Robot::go_to_next_point() {
 		}
 	}
 	if(!this->path.empty()){
-		this->path.pop();
+		this->path.pop_back();
 	}
 	fprintf(stderr,"#Note(Robot::go_to_next_point): [%d]Robot::%d(%d,%d) success move to point(%d,%d).\n",frame,this->id,this->x,this->y,next_x,next_y);
 	return true;
@@ -268,8 +273,8 @@ bool Robot::go_to_next_point() {
 // 撤销机器人已预订的路径
 void Robot::cancel_path_book(){
 	while (!this->path.empty()) {
-		auto [rframe, point_hash] = this->path.top();
-		this->path.pop();
+		auto [rframe, point_hash] = this->path.back();
+		this->path.pop_back();
 
 		int p_x = point_hash/GRAPH_SIZE, p_y = point_hash%GRAPH_SIZE;
 		book[p_x][p_y].erase(rframe+1);
@@ -286,6 +291,12 @@ void Robot::book_get_packet_event(int arrive_frame){
 // 订阅一个放货物的事件
 void Robot::book_pull_packet_event(int arrive_frame){
 	msg_handler.add_an_event(arrive_frame,this->id,MSG_ROBOT_NEED_PULL);
+}
+
+// 返回机器人到达的时间
+int Robot::arrive_time(){
+	if(this->path.empty())return frame;
+	return this->path[0].first+1;
 }
 
 // 期望复杂度：1
@@ -351,9 +362,11 @@ void Robot::recover(){
 	case 5:
 		break;
 	case 6:
+		packet_unbook(this->target_packet_id);
 		this->target_packet_id=-1;
 		break;
 	case 7:
+		packet_unbook(this->target_packet_id);
 		this->target_packet_id=-1;
 		break;
 	default:
@@ -414,7 +427,7 @@ bool Robot::go_to_nearest_berth(){
 // 具体算法：寻找value/dict最大的包裹
 // 注意：本函数可多次调用【只要未拿到包裹可随时更新最优】
 bool Robot::find_a_best_packet(){
-	// 目前有货物未预定 且当前机器人不是在恢复状态 且没有拿到货物 且在泊位
+	// 目前有货物未预定 且当前机器人不是在恢复状态 且没有拿到货物 且没有货物
 	if(unbooked_packet.empty()||this->status==0||this->packet_id!=-1||this->target_packet_id!=-1){
 		// fprintf(stderr,"#Warning(Robot::find_a_best_packet): [%d]Robot::%d(%d,%d) cannot get a packet, status=%d, packet_id=%d, unbooked_packet.empty()=%d.\n", frame, this->id, this->x, this->y, this->status, this->packet_id,unbooked_packet.empty());
 		return false;
@@ -427,7 +440,7 @@ bool Robot::find_a_best_packet(){
 	for(auto &packet_id:unbooked_packet){
 		auto &p=packet[packet_id];
 		// 抵达货物时不会超时
-		if(packet[packet_id].timeout>this->shortest_dict[p.x][p.y]){
+		if(packet[packet_id].timeout-ARRIVE_PACKET_OFFSET>this->shortest_dict[p.x][p.y]){
 			double current_rate=(packet[packet_id].value)/(this->shortest_dict[p.x][p.y]-frame+go_to_which_berth[p.x][p.y].second);
 			if(current_rate>best_rate){
 				best_rate=current_rate;
@@ -439,11 +452,15 @@ bool Robot::find_a_best_packet(){
 	// 当更好的不是当前算到最好的则修改
 	if(this->target_packet_id!=best_packet_id&&best_packet_id!=-1){
 		if(this->target_packet_id!=-1)packet_unbook(this->target_packet_id);
-		packet_be_booked(best_packet_id,this->id);
 
 		int best_packet_x=packet[best_packet_id].x,best_packet_y=packet[best_packet_id].y;
 		this->cancel_path_book();
-		this->set_and_book_a_path_to(best_packet_x,best_packet_y);
+		if(!this->set_and_book_a_path_to(best_packet_x,best_packet_y)){
+			fprintf(stderr,"#Note(Robot::find_a_best_packet): [%d]Robot::%d(%d,%d) keep its target_packet as Packet::%d, because path cann`t get.\n", frame, this->id, this->x, this->y, this->target_packet_id);
+			return false;
+		}
+
+		packet_be_booked(best_packet_id,this->id);
 		this->target_packet_id=best_packet_id;
 		this->book_get_packet_event(this->shortest_dict[best_packet_x][best_packet_y]);
 

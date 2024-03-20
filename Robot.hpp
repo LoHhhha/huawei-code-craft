@@ -15,10 +15,12 @@ struct Robot {
 	int target_packet_id;							// -1：无目的货物 其他整数: 货物编号
 	int shortest_dict[GRAPH_SIZE][GRAPH_SIZE];		// 最短路记录矩阵，与update_dict / get_dict_to / get_and_book_a_path_to一并使用
 	// int sleep[GRAPH_SIZE][GRAPH_SIZE];			// 最短路等待记录矩阵，描述的是【去】该格等待的时间，与update_dict / get_dict_to / get_and_book_a_path_to一并使用
-	stack<pii> path;								// 维护机器人路径{frame_to_go（出发时间）, point_hash}，go_to_next_point
+	vector<pii> path;								// 维护机器人路径{frame_to_go（出发时间）, point_hash}，go_to_next_point
 
 	Robot() = default;
-	Robot(int id, int x, int y, int status): id(id), x(x), y(y), status(status), target_berth_id(-1), target_packet_id(-1) {}
+	Robot(int id, int x, int y, int status): id(id), x(x), y(y), status(status), target_berth_id(-1), target_packet_id(-1) {
+		path.reserve(1000);			// 预留空间，减少内存申请
+	}
 
 	void update_dict();
 	int get_dict_to(int tx,int ty);
@@ -26,6 +28,7 @@ struct Robot {
 	void cancel_path_book();
 	void book_get_packet_event(int arrive_frame);
 	void book_pull_packet_event(int arrive_frame);
+	int arrive_time();
 
 	// ----- begin high level -----
 

@@ -61,7 +61,8 @@ MsgHandler::MsgHandler(){
     // MSG_PACKET_NEED_DELETE：删除货物
     auto packet_delete=[&](Msg msg){
         // 这个要判断有没有被取走，如果被取走了就不用管了
-        if (packet[msg.obj_id].status>=ROBOT_NUM){
+        auto it=packet.find(msg.obj_id);
+        if (it==packet.end()||it->second.status>=ROBOT_NUM){
             return;
         }   
         delete_packet(msg.obj_id);

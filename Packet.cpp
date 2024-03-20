@@ -46,7 +46,7 @@ bool Packet::broadcast() {
 				if (graph[next_x][next_y] == -1) {	// 障碍
 					continue;
 				}
-				if (step+1 >= 1000) {	// 超时
+				if (step+1 >= PACKET_TIME_OUT-ARRIVE_PACKET_OFFSET) {	// 超时，剩余200帧机动
 					isok = true;
 					break;
 				}
@@ -62,10 +62,10 @@ bool Packet::broadcast() {
 					if (rb.status == 0) {	// 机器人处于恢复状态
 						continue;
 					}
-					if (rb.packet_id == -1 && rb.path.empty()) {	// 没有要取的物品，直接把货物分配给该机器人
-						this->status = rb.id;
-						rb.target_packet_id = this->id;
-						rb.target_berth_id = -1;
+
+					// 没有要取的物品，直接把货物分配给该机器人
+					// 这里修改为target_packet_id，path为空可能是到达货物了
+					if (rb.packet_id == -1 && rb.target_packet_id==-1) {
 						rb.update_dict();	// 更新最短路径
 						bool can_arrive = rb.set_and_book_a_path_to(this->x, this->y);	// 设置路径
 						
@@ -75,27 +75,41 @@ bool Packet::broadcast() {
 							return false;
 						}
 
+						rb.target_packet_id = this->id;
+						rb.target_berth_id = -1;
+
+						packet_be_booked(this->id,rb.id);		// 预定
 						rb.book_get_packet_event(rb.get_dict_to(this->x,this->y));	// 预定取货事件
+
 						isok = true;
 						break;
 					} else if (rb.packet_id == -1) {	// 有将要取的物品，已经规划好了路径，判断是否将货物重新分配给他
 						auto origin_packet = packet[rb.target_packet_id];
 						int val1 = this->value;	// 当前货物价值
 						int val2 = origin_packet.value;	// 将要取的货物价值
-						int t1 = rb.get_dict_to(this->x, this->y) - frame;	// 机器人到达当前货物所需时间
-						int t2 = rb.get_dict_to(origin_packet.x, origin_packet.y) - frame;	// 机器人到原货物所需时间）
+
+						if(val1<=val2){
+							continue;
+						}
+						// 机器人到达的路径用一下方法求解不正确
+						// rb.get_dict_to必须经过update_dict后才是正确
+						// int t1 = rb.get_dict_to(this->x, this->y) - frame;	// 机器人到达当前货物所需时间
+						// int t2 = rb.get_dict_to(origin_packet.x, origin_packet.y) - frame;	// 机器人到原货物所需时间）
+						int t1=step+1;		// 机器人到达当前货物所需时间
+						int t2=rb.arrive_time()-frame;
+
 						t1 += go_to_which_berth[this->x][this->y].second;	// 当前货物到达泊位所需时间
 						t2 += go_to_which_berth[origin_packet.x][origin_packet.y].second;	// 原货物到达泊位所需时间
 
-						auto calc = [](int val, int t) { return double(val)/(t+1); };	// 计算性价比
-						if (calc(val1, t1) / calc(val2, t2) >= PACKET_SWITCH_RATE) {	// 换货物的性价比大于一定比例
-							this->status = rb.id;
-
+						auto calc = [](int val, int t)->double { return double(val)/(t+1); };	// 计算性价比
+						if (calc(val1, t1)>= calc(val2, t2)*PACKET_SWITCH_RATE) {	// 换货物的性价比大于一定比例
+							
+							// 解除原有货物预定
 							packet_unbook(rb.target_packet_id);
 
-							origin_packet.status = -1;
 							rb.target_packet_id = this->id;
 							rb.target_berth_id = -1;
+
 							rb.cancel_path_book();	// 取消原路径
 							rb.update_dict();	// 更新最短路径
 							bool can_arrive = rb.set_and_book_a_path_to(this->x, this->y);	// 设置路径
@@ -104,6 +118,8 @@ bool Packet::broadcast() {
 								fprintf(stderr,"#Warning(Packet::broadcast): [%d]Robot::%d(%d,%d) fail to set path to Packet::%d(%d,%d).\n", frame, rb.id, rb.x, rb.y, this->id, this->x, this->y);
 								return false;
 							}
+
+							packet_be_booked(this->id,rb.id);		// 预定
 							rb.book_get_packet_event(rb.get_dict_to(this->x,this->y));	// 预定取货事件
 
 							isok = true;
