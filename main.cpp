@@ -7,8 +7,6 @@
 #include "Berth.hpp"
 
 
-
-
 // 初始化
 void init() {
 	// 地图初始化
@@ -178,9 +176,7 @@ void solve(){
 	// 	return a->value > b->value;
 	// });
 	// for (auto &pk:new_packet) {
-	// 	if(!pk->broadcast()){
-	// 		break;
-	// 	}
+	// 	pk->broadcast();
 	// }
 
 	// #ifdef DE_BUG

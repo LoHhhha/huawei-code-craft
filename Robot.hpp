@@ -19,7 +19,7 @@ struct Robot {
 
 	Robot() = default;
 	Robot(int id, int x, int y, int status): id(id), x(x), y(y), status(status), target_berth_id(-1), target_packet_id(-1) {
-		path.reserve(1000);			// 预留空间，减少内存申请
+		path.reserve(2000);			// 预留空间，减少内存申请
 	}
 
 	void update_dict();
