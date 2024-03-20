@@ -198,7 +198,7 @@ bool Robot::set_and_book_a_path_to(int tx, int ty) {
 				continue;
 			}
 
-			if (frame_arrive == this->shortest_dict[pre_x][pre_y]) {
+			if (frame_arrive-1 == this->shortest_dict[pre_x][pre_y]) {
 				current_x = pre_x, current_y = pre_y;
 				frame_arrive = this->shortest_dict[pre_x][pre_y];
 				isok = true;
