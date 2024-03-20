@@ -100,6 +100,15 @@ int get_input() {
 		if (!have_packet) {
 			robot[i].packet_id = -1;
 		}
+		else{
+			if(robot[i].target_packet_id==-1){
+				robot[i].packet_id = 0;			// 补全
+			}
+			else{
+				robot[i].packet_id = robot[i].target_packet_id;
+				robot[i].target_packet_id=-1;
+			}
+		}
 
 		graph[robot[i].x][robot[i].y] ^= ROBOT_BIT;	// 机器人上一帧位置清空
 		graph[x][y] ^= ROBOT_BIT;					// 机器人当前帧位置标记
@@ -171,44 +180,40 @@ void solve(){
 		pk->broadcast();
 	}
 
-	// // #ifdef DE_BUG
-	// // 	debug(packet)
-	// // #endif
+	// #ifdef DE_BUG
+	// 	debug(packet)
+	// #endif
 
-	// // step 2
-	// checker();
+	// step 2
+	checker();
 
-	// // step 3
-	// for(int i=0;i<ROBOT_NUM;i++){
-	// 	robot[i].find_a_best_packet();
-	// }
-	// for(int i=0;i<ROBOT_NUM;i++){
-	// 	robot[i].go_to_nearest_berth();
-	// }
-	// // todo 空闲机器人的处理
-	// // 机器人均匀到达地图的点
+	// step 3
+	for(int i=0;i<ROBOT_NUM;i++){
+		robot[i].find_a_best_packet();
+	}
+	for(int i=0;i<ROBOT_NUM;i++){
+		robot[i].go_to_nearest_berth();
+	}
+	// todo 空闲机器人的处理
+	// 机器人均匀到达地图的点
 
-	// // step 4
-	// for(int i=0;i<ROBOT_NUM;i++){
-	// 	robot[i].go_to_next_point();
-	// }
+	// step 4
+	for(int i=0;i<ROBOT_NUM;i++){
+		robot[i].go_to_next_point();
+	}
 
-	// // step 5
-	// msg_handler.check_and_do();
-
-	// // step 6
-	// for(int i=0;i<BOAT_NUM;i++){
-	// 	if(boat[i].status==1&&boat[i].berth_id!=-1){
-	// 		auto &tberth=berth[boat[i].berth_id];
-	// 		int change_size=min(tberth.current_wait_packet,tberth.transport_time);
-	// 		boat[i].load+=change_size;
-	// 		tberth.current_wait_packet-=change_size;
-	// 	}
-	// }
-
-	robot[0].find_a_best_packet();
-	robot[0].go_to_nearest_berth();
+	// step 5
 	msg_handler.check_and_do();
+
+	// step 6
+	for(int i=0;i<BOAT_NUM;i++){
+		if(boat[i].status==1&&boat[i].berth_id!=-1){
+			auto &tberth=berth[boat[i].berth_id];
+			int change_size=min(tberth.current_wait_packet,tberth.transport_time);
+			boat[i].load+=change_size;
+			tberth.current_wait_packet-=change_size;
+		}
+	}
 
 	cout << "OK" << endl << flush;
 }
