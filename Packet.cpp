@@ -88,7 +88,7 @@ bool Packet::broadcast() {
 						t2 += go_to_which_berth[origin_packet.x][origin_packet.y].second;	// 原货物到达泊位所需时间
 
 						auto calc = [](int val, int t) { return double(val)/(t+1); };	// 计算性价比
-						if (calc(val1, t1) / calc(val2, t2) >= 1.15) {	// 换货物的性价比大于一定比例
+						if (calc(val1, t1) / calc(val2, t2) >= PACKET_SWITCH_RATE) {	// 换货物的性价比大于一定比例
 							this->status = rb.id;
 
 							packet_unbook(rb.target_packet_id);

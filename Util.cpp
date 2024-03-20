@@ -194,6 +194,17 @@ void choose_best_berth(int num){
 			}
 		}
 	}
+
+	// 维护所有使用的泊位的位置
+	for(int berth_idx=0;berth_idx<BERTH_NUM;berth_idx++){
+		if(use_berth[berth_idx]){
+			for(int i=0;i<BERTH_SIZE;i++){
+				for(int j=0;j<BERTH_SIZE;j++){
+					berth_point_hash.insert((i+berth[berth_idx].x)*GRAPH_SIZE+(j+berth[berth_idx].y));
+				}
+			}
+		}
+	}
 	
 	// debug
 	string choose_info;

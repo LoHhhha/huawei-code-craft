@@ -36,6 +36,7 @@ using pii = pair<int, int>;
 #define GRAPH_SIZE 200	        // 地图大小
 #define ROBOT_NUM 	10	        // 机器人数量
 #define BERTH_NUM 	10	        // 泊位数量
+#define BERTH_SIZE	4			// 泊位
 #define BOAT_NUM 	5	        // 船数量
 #define FRAME_COUNT 15000       // 模拟总帧数
 #define PACKET_TIME_OUT 1000    // 货物过期
@@ -46,6 +47,7 @@ using pii = pair<int, int>;
 #define BERTH_BIT 	1	        // 泊位标记
 #define ROBOT_BIT 	2	        // 机器人标记
 #define PACKET_BIT 	4	        // 货物标记
+#define PACKET_SWITCH_RATE 1.2	// 换货比
 #define endl '\n'
 
 
@@ -67,6 +69,7 @@ extern int graph[GRAPH_SIZE][GRAPH_SIZE];	                // 地图 vector 障�
 extern map<int,int> book[GRAPH_SIZE][GRAPH_SIZE];	        // pii:{book_frame,id} 点被预定的情况
 extern pii go_to_which_berth[GRAPH_SIZE][GRAPH_SIZE];		// 场上每一个点去哪一个泊位{id, dict} 注意：当id==-1或者dict==INT_INF时不可达！
 extern bool robot_can_go[GRAPH_SIZE][GRAPH_SIZE];           // 维护机器人能到达的点
+extern unordered_set<int> berth_point_hash;
 // ---------- end graph ----------
 
 
