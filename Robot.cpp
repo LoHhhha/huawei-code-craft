@@ -29,16 +29,13 @@ inline bool check_if_can_go(int current_x, int current_y, int next_x, int next_y
 	}
 
 	// 判断是否重叠
-	auto next_it = book[next_x][next_y].find(tframe+1);
-	if (next_it != book[next_x][next_y].end()) {
+	if (book[next_x][next_y].count(tframe+1)) {
 		return false;
 	}
 
 	// 判断是否对撞
-	next_it = book[next_x][next_y].find(tframe);
-	auto current_it = book[current_x][current_y].find(tframe+1);
-	if (next_it!=book[next_x][next_y].end() && current_it!=book[current_x][current_y].end()) {
-		return next_it->second != current_it->second;
+	if (book[next_x][next_y].count(tframe) && book[current_x][current_y].count(tframe+1)) {
+		return false;
 	}
 
 	return true;
@@ -193,7 +190,7 @@ bool Robot::set_and_book_a_path_to(int tx, int ty) {
 	int current_x = tx, current_y = ty;
 	while (current_x!=this->x || current_y!=this->y) {
 		this->path.push_back({frame_arrive-1, current_x*GRAPH_SIZE+current_y});
-		book[current_x][current_y][frame_arrive] = this->id;
+		book[current_x][current_y].insert(frame_arrive);
 
 		int isok = false;
 		// 寻找上一个点
@@ -219,6 +216,7 @@ bool Robot::set_and_book_a_path_to(int tx, int ty) {
 			this->cancel_path_book();
 
 			// 定义无目标
+			this->target_packet_id=-1;
 			this->target_berth_id=-1;
 			
 			return false;
@@ -242,6 +240,23 @@ bool Robot::go_to_next_point() {
 	auto [frame_to_go, point_hash] = this->path.back();
 	int current_x = this->x, current_y = this->y;
 	int next_x = point_hash/GRAPH_SIZE, next_y = point_hash%GRAPH_SIZE;
+
+	// 最终保底
+	if(graph[next_x][next_y]&ROBOT_BIT){
+		bool is_static=false;
+		for(int i=0;i<ROBOT_NUM;i++){
+			if(robot[i].x==next_x&&robot[i].y==next_y){
+				is_static=robot[i].path.empty();
+				break;
+			}
+		}
+		if(!is_static){
+			fprintf(stderr,"#Error(Robot::go_to_next_point): [%d]Robot::%d(%d,%d) will crush if it contiune to go.\n", frame, this->id, this->x, this->y);
+			this->cancel_path_book();
+			return false;
+		}
+	}
+
 	if (frame == frame_to_go) {
 		bool isok = false;
 		for (int i=0;i<4;i++) {
@@ -263,9 +278,10 @@ bool Robot::go_to_next_point() {
 			this->cancel_path_book();
 		}
 	}
-	if(!this->path.empty()){
-		this->path.pop_back();
-	}
+
+	this->path.pop_back();
+	book[this->x][this->y].erase(frame);
+
 	fprintf(stderr,"#Note(Robot::go_to_next_point): [%d]Robot::%d(%d,%d) success move to point(%d,%d).\n",frame,this->id,this->x,this->y,next_x,next_y);
 	return true;
 }
@@ -436,16 +452,24 @@ bool Robot::find_a_best_packet(){
 
 	this->update_dict();
 
-	int best_packet_id=-1;
-	double best_rate=-1;
+	int best_packet_id=this->target_packet_id;
 	for(auto &packet_id:unbooked_packet){
 		auto &p=packet[packet_id];
 		// 抵达货物时不会超时
 		if(packet[packet_id].timeout-ARRIVE_PACKET_OFFSET>this->shortest_dict[p.x][p.y]){
-			double current_rate=double(packet[packet_id].value)/(this->shortest_dict[p.x][p.y]-frame+go_to_which_berth[p.x][p.y].second);
-			if(current_rate>best_rate){
-				best_rate=current_rate;
+			if(best_packet_id==-1){
 				best_packet_id=packet_id;
+			}
+			else{
+				Packet &best_packet=packet[best_packet_id];
+				int t_best=this->shortest_dict[best_packet.x][best_packet.y]-frame+go_to_which_berth[best_packet.x][best_packet.y].second;
+				int t_cur=this->shortest_dict[p.x][p.y]-frame+go_to_which_berth[p.x][p.y].second;
+				if(p.value*t_best>best_packet.value*t_cur){
+					best_packet_id=packet_id;
+				}
+				else if(p.value*t_best==best_packet.value*t_cur&&p.value>best_packet.value){
+					best_packet_id=packet_id;
+				}
 			}
 		}
 	}

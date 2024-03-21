@@ -97,7 +97,7 @@ int get_input() {
 		if (!have_packet) {
 			robot[i].packet_id = -1;
 		}
-		else{
+		else if(robot[i].packet_id==-1){
 			if(robot[i].target_packet_id==-1){
 				fprintf(stderr, "#Warning(main::get_input): [%d]Robot::%d packet information disappear.\n", frame, i);
 				robot[i].packet_id = 0;				// 补全

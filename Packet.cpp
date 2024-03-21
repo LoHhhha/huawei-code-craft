@@ -88,9 +88,6 @@ bool Packet::broadcast() {
 						int val1 = this->value;	// 当前货物价值
 						int val2 = origin_packet.value;	// 将要取的货物价值
 
-						if(val1<=val2){
-							continue;
-						}
 						// 机器人到达的路径用一下方法求解不正确
 						// rb.get_dict_to必须经过update_dict后才是正确
 						// int t1 = rb.get_dict_to(this->x, this->y) - frame;	// 机器人到达当前货物所需时间
@@ -104,7 +101,7 @@ bool Packet::broadcast() {
 						t1 +=frame-rb.pre_pull_packet_frame;
 
 						auto calc = [](int val, int t)->double { return double(val)/(t+1); };	// 计算性价比
-						if (calc(val1, t1)>= calc(val2, t2)*PACKET_SWITCH_RATE) {	// 换货物的性价比大于一定比例
+						if (val1*t2 >= val2*t1*PACKET_SWITCH_RATE && val1>val2&&t1<t2) {	// 换货物的性价比大于一定比例
 							
 							// 解除原有货物预定
 							packet_unbook(rb.target_packet_id);

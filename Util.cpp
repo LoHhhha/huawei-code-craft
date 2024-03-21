@@ -223,7 +223,7 @@ void choose_best_berth(int num){
 						go_to_which_berth[i][j].first==-1||
 						go_to_which_berth[i][j].second>berths_to_point_dict[i][j][idx]||(
 							go_to_which_berth[i][j].second==berths_to_point_dict[i][j][idx]&&
-							berth[idx].loading_speed>berth[go_to_which_berth[i][j].first].loading_speed
+							berth[idx].transport_time>berth[go_to_which_berth[i][j].first].transport_time
 						)
 					){
 						go_to_which_berth[i][j].first=idx;

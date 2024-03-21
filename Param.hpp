@@ -7,7 +7,7 @@
 #define DEBUG_STATE 1	// 调试模式： 0：关闭，1：终端，2：cph
 #define DEBUG_FRAME 10	// 调试模式：调试帧数
 
-// #define ENABLE_PACKET_BROADCAST
+#define ENABLE_PACKET_BROADCAST
 
 
 #ifdef DE_BUG	 
@@ -49,8 +49,8 @@ using pii = pair<int, int>;
 #define BERTH_BIT 	1	        	// 泊位标记
 #define ROBOT_BIT 	2	        	// 机器人标记
 #define PACKET_BIT 	4	        	// 货物标记
-#define PACKET_SWITCH_RATE 1.8		// 换货比值
-#define ARRIVE_PACKET_OFFSET 200	// 时间偏移
+#define PACKET_SWITCH_RATE 3		// 换货比值
+#define ARRIVE_PACKET_OFFSET 25		// 取货时间偏移
 #define endl '\n'
 
 
@@ -69,7 +69,7 @@ extern int money;	// 当前金钱数
 
 // ---------- begin graph ----------
 extern int graph[GRAPH_SIZE][GRAPH_SIZE];	                // 地图 vector 障碍:-1 空地:0 停泊点:1 机器人:2 货物:4 （二进制）
-extern map<int,int> book[GRAPH_SIZE][GRAPH_SIZE];	        // pii:{book_frame,id} 点被预定的情况
+extern set<int> book[GRAPH_SIZE][GRAPH_SIZE];	       		// 点被预定的情况
 extern pii go_to_which_berth[GRAPH_SIZE][GRAPH_SIZE];		// 场上每一个点去哪一个泊位{id, dict} 注意：当id==-1或者dict==INT_INF时不可达！
 extern bool robot_can_go[GRAPH_SIZE][GRAPH_SIZE];           // 维护机器人能到达的点
 extern unordered_set<int> berth_point_hash;
