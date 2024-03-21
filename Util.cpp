@@ -39,11 +39,50 @@ void get_robot_can_go(){
 	}
 }
 
+// 预期复杂度：4e4
+// 预处理选择泊位可到达的点
+// 依赖use_berth
+// 更新use_berth_can_go
+void get_use_berth_can_go(){
+	queue<int>qu;
+	for(int berth_idx=0;berth_idx<BERTH_NUM;berth_idx++){
+		if(use_berth){
+			for(int i=0;i<BERTH_SIZE;i++){
+				for(int j=0;j<BERTH_SIZE;j++){
+					qu.push((i+berth[berth_idx].x)*GRAPH_SIZE+j+berth[berth_idx].y);
+					use_berth_can_go[i+berth[berth_idx].x][j+berth[berth_idx].y]=true;
+				}
+			}
+		}
+	}
+
+	while(!qu.empty()){
+		int qn=qu.size();
+		while(qn--){
+			auto point_hash=qu.front();
+			int current_x = point_hash/GRAPH_SIZE, current_y = point_hash%GRAPH_SIZE;
+			qu.pop();
+			for(auto &[dx,dy]:dir){
+				int next_x = current_x+dx, next_y = current_y+dy;
+				if (next_x>=GRAPH_SIZE || next_y>=GRAPH_SIZE || next_x<0 || next_y<0) {
+					continue;
+				}
+				if(graph[next_x][next_y]!=-1&&!use_berth_can_go[next_x][next_y]){
+					qu.push(next_x*GRAPH_SIZE+next_y);
+					use_berth_can_go[next_x][next_y]=true;
+				}
+			}
+		}
+	}
+}
+
 // 期望复杂度：1e7(4e4*(BERTH_NUM choose num=10C5=210)) 
 // 选择num个泊位、预处理每一点到最近港口及其距离、绑定船及添加消息
 // 港口选择优先级：泊位可到达点数目多优先(首先机器人可达)、距离短者优先、泊位到虚拟点、泊位速度快者优先
-// 注意：依赖【robot_can_go】的值
+// 注意：调用get_robot_can_go、get_use_berth_can_go
 void choose_best_berth(int num){
+	get_robot_can_go();
+
 	int berths_to_point_dict[GRAPH_SIZE][GRAPH_SIZE][BERTH_NUM]{0};
 
 	// 维护出每一个泊位到【机器人可到达的点】的最短距离
@@ -205,6 +244,8 @@ void choose_best_berth(int num){
 			}
 		}
 	}
+
+	get_use_berth_can_go();
 	
 	// debug
 	string choose_info;
@@ -225,7 +266,7 @@ void choose_best_berth(int num){
 
 // 生成货物
 bool generate_packet(int x, int y, int packet_money) {
-	if(robot_can_go[x][y]){
+	if(use_berth_can_go[x][y]){
 		Packet p(++packet_id, x, y, packet_money, frame + PACKET_TIME_OUT);	// 在 1000 帧后过期
 		packet[packet_id] = p;						// 在货物表中添加
 		hash2packet[x*GRAPH_SIZE+y] = packet_id;	// 在哈希表中添加 [[x*GRAPH_SIZE+y] -> packet_id]

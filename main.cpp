@@ -45,7 +45,6 @@ void init() {
 	cin >> okk;
 
 	// 在这里写初始化代码
-	get_robot_can_go();
 	choose_best_berth(min(BOAT_NUM,BERTH_NUM));
 
 	// #ifdef DE_BUG

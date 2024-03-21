@@ -442,7 +442,7 @@ bool Robot::find_a_best_packet(){
 		auto &p=packet[packet_id];
 		// 抵达货物时不会超时
 		if(packet[packet_id].timeout-ARRIVE_PACKET_OFFSET>this->shortest_dict[p.x][p.y]){
-			double current_rate=(packet[packet_id].value)/(this->shortest_dict[p.x][p.y]-frame+go_to_which_berth[p.x][p.y].second);
+			double current_rate=double(packet[packet_id].value)/(this->shortest_dict[p.x][p.y]-frame+go_to_which_berth[p.x][p.y].second);
 			if(current_rate>best_rate){
 				best_rate=current_rate;
 				best_packet_id=packet_id;
