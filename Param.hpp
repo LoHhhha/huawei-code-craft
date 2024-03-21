@@ -49,8 +49,8 @@ using pii = pair<int, int>;
 #define BERTH_BIT 	1	        	// 泊位标记
 #define ROBOT_BIT 	2	        	// 机器人标记
 #define PACKET_BIT 	4	        	// 货物标记
-#define PACKET_SWITCH_RATE 3		// 换货比值
-#define ARRIVE_PACKET_OFFSET 25		// 取货时间偏移
+#define PACKET_SWITCH_RATE 4		// 换货比值
+#define ARRIVE_PACKET_OFFSET 0		// 取货时间偏移
 #define endl '\n'
 
 

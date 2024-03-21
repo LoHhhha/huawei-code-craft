@@ -82,7 +82,7 @@ void Robot::update_dict() {
 					continue;
 				}
 
-				if(this->shortest_dict[next_x][next_y]==INT_INF && check_if_can_go(point_x, point_y, next_x, next_y, tframe)) {
+				if(this->shortest_dict[next_x][next_y]>tframe+1 && check_if_can_go(point_x, point_y, next_x, next_y, tframe)) {
 					this->shortest_dict[next_x][next_y] = tframe+1;
 					qu.push(get_hash(next_x,next_y));
 				}
@@ -243,14 +243,25 @@ bool Robot::go_to_next_point() {
 
 	// 最终保底
 	if(graph[next_x][next_y]&ROBOT_BIT){
-		bool is_static=false;
+		bool need_cancel=false;
 		for(int i=0;i<ROBOT_NUM;i++){
 			if(robot[i].x==next_x&&robot[i].y==next_y){
-				is_static=robot[i].path.empty();
-				break;
+				if(robot[i].path.empty()){
+					need_cancel=true;
+					break;
+				}
+				else{
+					auto [other_frame_to_go, other_point_hash] = robot[i].path.back();
+					int other_x = other_point_hash/GRAPH_SIZE, other_y = other_point_hash%GRAPH_SIZE;
+					if(other_x==current_x&&other_y==current_y){
+						need_cancel=true;
+						break;
+					}
+				}
+				
 			}
 		}
-		if(!is_static){
+		if(need_cancel){
 			fprintf(stderr,"#Error(Robot::go_to_next_point): [%d]Robot::%d(%d,%d) will crush if it contiune to go.\n", frame, this->id, this->x, this->y);
 			this->cancel_path_book();
 			return false;
