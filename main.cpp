@@ -188,8 +188,19 @@ void solve(){
 	checker();
 
 	// step 3
+	vector<Robot*>sort_robot(ROBOT_NUM);
 	for(int i=0;i<ROBOT_NUM;i++){
-		robot[i].find_a_best_packet();
+		sort_robot[i]=&robot[i];
+	}
+	sort(sort_robot.begin(),sort_robot.end(),[&](auto &p1,auto &p2){
+		return go_to_which_berth[p1->x][p1->y].second<go_to_which_berth[p2->x][p2->y].second;
+	});
+
+	for(int i=0;i<ROBOT_NUM;i++){
+		if(sort_robot[i]->packet_id==-1){
+			sort_robot[i]->find_a_best_packet();
+			sort_robot[i]->change_if_have_better_packet();
+		}
 	}
 	for(int i=0;i<ROBOT_NUM;i++){
 		robot[i].go_to_nearest_berth();

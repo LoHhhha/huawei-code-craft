@@ -266,7 +266,7 @@ void choose_best_berth(int num){
 
 // 生成货物
 bool generate_packet(int x, int y, int packet_money) {
-	if(use_berth_can_go[x][y]){
+	if(use_berth_can_go[x][y]&&packet_money>=PACKET_VALUE_THRESHOLD){
 		Packet p(++packet_id, x, y, packet_money, frame + PACKET_TIME_OUT);	// 在 1000 帧后过期
 		packet[packet_id] = p;						// 在货物表中添加
 		hash2packet[x*GRAPH_SIZE+y] = packet_id;	// 在哈希表中添加 [[x*GRAPH_SIZE+y] -> packet_id]

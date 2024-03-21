@@ -506,4 +506,64 @@ bool Robot::find_a_best_packet(){
 	fprintf(stderr,"#Note(Robot::find_a_best_packet): [%d]Robot::%d(%d,%d) keep its target_packet as Packet::%d.\n", frame, this->id, this->x, this->y, this->target_packet_id);
 	return false;
 }
+
+// 在前进方向上寻找一个更好的货物
+bool change_packet_vis[GRAPH_SIZE][GRAPH_SIZE];
+bool Robot::change_if_have_better_packet(){
+	if(this->packet_id!=-1||this->target_packet_id==-1){
+		return false;
+	}
+	for(int i=0;i<GRAPH_SIZE;i++){
+		for(int j=0;j<GRAPH_SIZE;j++){
+			change_packet_vis[i][j]=false;
+		}
+	}
+	this->update_dict();
+	for(auto &[frame_to_go, point_hash]:this->path){
+		int current_x = point_hash/GRAPH_SIZE, current_y = point_hash%GRAPH_SIZE;
+		for(int i=0;i<SEARCH_PACKET_BOUND;i++){
+			for(int j=0;j<SEARCH_PACKET_BOUND;j++){
+				int check_x=current_x+i,check_y=current_y+j;
+				if (check_x>=GRAPH_SIZE || check_y>=GRAPH_SIZE || check_x<0 || check_y<0) {
+					continue;
+				}
+
+				if(change_packet_vis[check_x][check_y]||graph[check_x][check_y]==INT_INF){
+					continue;
+				}
+				change_packet_vis[check_x][check_y]=true;
+
+				int hash=check_x*GRAPH_SIZE+check_y;
+				auto it=hash2packet.find(hash);
+				if(it==hash2packet.end()){
+					continue;
+				}
+
+				if(!unbooked_packet.count(it->first)){
+					continue;
+				}
+
+				Packet &p=packet[it->first],&pre_p=packet[this->target_packet_id];
+
+				if(this->shortest_dict[check_x][check_y]>p.timeout-ARRIVE_PACKET_OFFSET){
+					continue;
+				}
+				int new_dict=this->shortest_dict[check_x][check_y]-frame+go_to_which_berth[check_x][check_y].second;
+				int old_dict=this->arrive_time()-frame+go_to_which_berth[check_x][check_y].second;
+				if(p.value>pre_p.value){
+					packet_unbook(pre_p.id);
+					this->target_packet_id=-1;
+					if(this->set_and_book_a_path_to(check_x,check_y)){
+						this->target_packet_id=p.id;
+						packet_be_booked(p.id,this->id);
+						return true;
+					}
+				}
+			}
+		}
+	}
+	fprintf(stderr,"#Note(Robot::change_if_have_better_packet): [%d]Robot::%d(%d,%d) keep its target_packet as Packet::%d.\n", frame, this->id, this->x, this->y, this->target_packet_id);
+	return false;
+}
+
 // ---------- end Robot方法实现 ----------

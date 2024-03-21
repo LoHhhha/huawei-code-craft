@@ -7,7 +7,7 @@
 #define DEBUG_STATE 1	// 调试模式： 0：关闭，1：终端，2：cph
 #define DEBUG_FRAME 10	// 调试模式：调试帧数
 
-#define ENABLE_PACKET_BROADCAST
+// #define ENABLE_PACKET_BROADCAST
 
 
 #ifdef DE_BUG	 
@@ -50,7 +50,9 @@ using pii = pair<int, int>;
 #define ROBOT_BIT 	2	        	// 机器人标记
 #define PACKET_BIT 	4	        	// 货物标记
 #define PACKET_SWITCH_RATE 4		// 换货比值
-#define ARRIVE_PACKET_OFFSET 0		// 取货时间偏移
+#define ARRIVE_PACKET_OFFSET 10		// 取货时间偏移
+#define SEARCH_PACKET_BOUND 20		// 更优货物扩展寻找幅度
+#define PACKET_VALUE_THRESHOLD 80	// 最低接受货物价值
 #define endl '\n'
 
 

@@ -36,6 +36,7 @@ struct Robot {
 	bool go_to_next_point();
 	bool go_to_nearest_berth();
 	bool find_a_best_packet();
+	bool change_if_have_better_packet();
 	void recover();
 
 	// ----- end high level -----
