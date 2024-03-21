@@ -47,9 +47,10 @@ void init() {
 	// 在这里写初始化代码
 	choose_best_berth(min(BOAT_NUM,BERTH_NUM));
 
-	// #ifdef DE_BUG
-	// 	debug(graph, robot_can_go, go_to_which_berth)
-	// #endif
+	#ifdef DE_BUG
+		// debug(graph, robot_can_go, go_to_which_berth)
+		debug(berth_block_order)
+	#endif
 
 	cout << "OK" << endl << flush;
 	

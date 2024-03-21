@@ -21,6 +21,7 @@ pii go_to_which_berth[GRAPH_SIZE][GRAPH_SIZE];		// 场上每一个点去哪一�
 bool robot_can_go[GRAPH_SIZE][GRAPH_SIZE]{0};  // 维护机器人能到达的点
 bool use_berth_can_go[GRAPH_SIZE][GRAPH_SIZE]{0};  // 维护选择的机器人能到达的点
 unordered_set<int> berth_point_hash;
+vector<int>berth_block_order[BERTH_NUM];
 
 
 bool use_berth[BERTH_NUM]{0};		// 泊位是否被使用

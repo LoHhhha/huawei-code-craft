@@ -76,6 +76,80 @@ void get_use_berth_can_go(){
 	}
 }
 
+void get_berth_order(){
+	int dict[BERTH_NUM][BERTH_NUM]{0};
+	for(int idx=0;idx<BERTH_NUM;idx++){
+		int b_x=berth[idx].x,b_y=berth[idx].y;
+		queue<int>qu;
+		for(int i=0;i<BERTH_NUM;i++){
+			for(int j=0;j<BERTH_NUM;j++){
+				dict[i][j]=INT_INF;
+			}
+		}
+		for(int i=0;i<BERTH_SIZE;i++){
+			int cur_x=b_x+i,cur_y=b_y-1;
+			if (cur_x>=GRAPH_SIZE || cur_y>=GRAPH_SIZE || cur_x<0 || cur_y<0) {
+				continue;
+			}
+			if(graph[cur_x][cur_y]==0){
+				qu.push(cur_x*GRAPH_SIZE+cur_y);
+			}
+
+			cur_y=b_y+BERTH_SIZE;
+			if (cur_x>=GRAPH_SIZE || cur_y>=GRAPH_SIZE || cur_x<0 || cur_y<0) {
+				continue;
+			}
+			if(graph[cur_x][cur_y]==0){
+				qu.push(cur_x*GRAPH_SIZE+cur_y);
+			}
+
+			cur_x=b_x-1,cur_y=b_y+i;
+			if (cur_x>=GRAPH_SIZE || cur_y>=GRAPH_SIZE || cur_x<0 || cur_y<0) {
+				continue;
+			}
+			if(graph[cur_x][cur_y]==0){
+				qu.push(cur_x*GRAPH_SIZE+cur_y);
+			}
+
+			cur_x=b_x+BERTH_SIZE;
+			if (cur_x>=GRAPH_SIZE || cur_y>=GRAPH_SIZE || cur_x<0 || cur_y<0) {
+				continue;
+			}
+			if(graph[cur_x][cur_y]==0){
+				qu.push(cur_x*GRAPH_SIZE+cur_y);
+			}
+		}
+		int current_dict=0;
+		while(!qu.empty()){
+			int qn=qu.size();
+			while(qn--){
+				auto point_hash = qu.front();
+				qu.pop();
+				int current_x = point_hash/GRAPH_SIZE, current_y = point_hash%GRAPH_SIZE;
+				for(auto &[dx,dy]:dir){
+					int next_x = current_x+dx, next_y = current_y+dy;
+					if (next_x>=b_x+BERTH_NUM || next_y>=b_y+BERTH_NUM || next_x<b_x || next_y<b_y) {
+						continue;
+					}
+					if(dict[next_x-b_x][next_y-b_y]==INT_INF){
+						qu.push(next_x*GRAPH_SIZE+next_y);
+						dict[next_x-b_x][next_y-b_y]=current_dict;
+					}
+				}
+			}
+			current_dict++;
+		}
+		berth_block_order[idx].resize(BERTH_SIZE*BERTH_SIZE);
+		iota(berth_block_order[idx].begin(),berth_block_order[idx].end(),0);
+		sort(berth_block_order[idx].begin(),berth_block_order[idx].end(),[&](int &n1,int &n2){
+			int x1=n1/BERTH_SIZE,x2=n2/BERTH_SIZE;
+			int y1=n1%BERTH_SIZE,y2=n2%BERTH_SIZE;
+			return dict[x1][y1]>dict[x2][y2];
+		});
+		berth_block_order[idx].erase(berth_block_order[idx].begin(),berth_block_order[idx].begin()+8);
+	}
+}
+
 // 期望复杂度：1e7(4e4*(BERTH_NUM choose num=10C5=210)) 
 // 选择num个泊位、预处理每一点到最近港口及其距离、绑定船及添加消息
 // 港口选择优先级：泊位可到达点数目多优先(首先机器人可达)、距离短者优先、泊位到虚拟点、泊位速度快者优先
@@ -246,6 +320,7 @@ void choose_best_berth(int num){
 	}
 
 	get_use_berth_can_go();
+	get_berth_order();
 	
 	// debug
 	string choose_info;

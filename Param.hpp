@@ -8,6 +8,7 @@
 #define DEBUG_FRAME 10	// 调试模式：调试帧数
 
 // #define ENABLE_PACKET_BROADCAST
+#define ENABLE_BERTH_ORDERED_BY_DICT
 
 
 #ifdef DE_BUG	 
@@ -76,6 +77,7 @@ extern pii go_to_which_berth[GRAPH_SIZE][GRAPH_SIZE];		// 场上每一个点去�
 extern bool robot_can_go[GRAPH_SIZE][GRAPH_SIZE];           // 维护机器人能到达的点
 extern unordered_set<int> berth_point_hash;
 extern bool use_berth_can_go[GRAPH_SIZE][GRAPH_SIZE];		// 维护选择的机器人能到达的点
+extern vector<int>berth_block_order[BERTH_NUM];				// 
 // ---------- end graph ----------
 
 

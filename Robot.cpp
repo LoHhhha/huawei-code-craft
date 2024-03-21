@@ -312,12 +312,12 @@ void Robot::cancel_path_book(){
 
 // 订阅一个取货物的事件
 void Robot::book_get_packet_event(int arrive_frame){
-	msg_handler.add_an_event(arrive_frame,this->id,MSG_ROBOT_NEED_GET);
+	msg_handler.add_an_event(arrive_frame-1,this->id,MSG_ROBOT_NEED_GET);
 }
 
 // 订阅一个放货物的事件
 void Robot::book_pull_packet_event(int arrive_frame){
-	msg_handler.add_an_event(arrive_frame,this->id,MSG_ROBOT_NEED_PULL);
+	msg_handler.add_an_event(arrive_frame-1,this->id,MSG_ROBOT_NEED_PULL);
 }
 
 // 返回机器人到达的时间
@@ -424,15 +424,25 @@ bool Robot::go_to_nearest_berth(){
 	}
 
 	int point_hash=-1,nearest_dict=INT_INF;
-	for(int i=0;i<BERTH_SIZE;i++){
-		for(int j=0;j<BERTH_SIZE;j++){
-			int current_dict=this->get_dict_to(i+berth[nearest_berth].x,j+berth[nearest_berth].y);
-			if(current_dict!=-1&&current_dict<nearest_dict){
-				nearest_dict=current_dict;
-				point_hash=(i+berth[nearest_berth].x)*GRAPH_SIZE+j+berth[nearest_berth].y;
+	#ifndef ENABLE_BERTH_ORDERED_BY_DICT
+		for(int i=0;i<BERTH_SIZE;i++){
+			for(int j=0;j<BERTH_SIZE;j++){
+				int current_dict=this->get_dict_to(i+berth[nearest_berth].x,j+berth[nearest_berth].y);
+				if(current_dict!=-1&&current_dict<nearest_dict){
+					nearest_dict=current_dict;
+					point_hash=(i+berth[nearest_berth].x)*GRAPH_SIZE+j+berth[nearest_berth].y;
+				}
 			}
 		}
-	}
+	#else
+		for(auto &inner_hash:berth_block_order[nearest_berth]){
+			int i=inner_hash/BERTH_SIZE,j=inner_hash%BERTH_SIZE;
+			if(this->get_dict_to(i+berth[nearest_berth].x,j+berth[nearest_berth].y)!=-1){
+				point_hash=(i+berth[nearest_berth].x)*GRAPH_SIZE+j+berth[nearest_berth].y;
+				break;
+			}
+		}
+	#endif
 	// 暂时不可达
 	if(point_hash==-1){
 		fprintf(stderr,"#Error(Robot::go_to_nearest_berth): [%d]Robot::%d(%d,%d) cann`t move to the berth.\n", frame, this->id, this->x, this->y);		
