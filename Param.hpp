@@ -7,7 +7,10 @@
 #define DEBUG_STATE 1	// 调试模式： 0：关闭，1：终端，2：cph
 #define DEBUG_FRAME FRAME_COUNT	// 调试模式：调试帧数
 
+// #define ENABLE_STDERR   // 开启stderr输出
+
 // #define ENABLE_PACKET_BROADCAST
+
 #define PACKET_SWITCH_RATE 4		// 换货比值
 
 #define ENABLE_BERTH_ORDERED_BY_DICT
@@ -26,7 +29,6 @@
 #ifdef DE_BUG	 
 	#define FRAME_TO_RUN DEBUG_FRAME	
 	#define THIS_DEBUG_STATE DEBUG_STATE
-	#define ENABLE_STDERR   // 开启stderr输出
 #else
 	#define FRAME_TO_RUN FRAME_COUNT
 	#define THIS_DEBUG_STATE 0
