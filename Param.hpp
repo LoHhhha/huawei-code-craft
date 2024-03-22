@@ -10,8 +10,9 @@
 // #define ENABLE_STDERR   // 开启stderr输出
 
 // #define ENABLE_PACKET_BROADCAST
-
 #define PACKET_SWITCH_RATE 4		// 换货比值
+
+// #define ENABLE_BOAT_SECOND_GO
 
 #define ENABLE_BERTH_ORDERED_BY_DICT
 #define NOT_USE_BERTH_BLOCK_NUM 7
@@ -20,9 +21,12 @@
 
 #define SEARCH_PACKET_BOUND 20		// 更优货物扩展寻找幅度
 
-#define PACKET_VALUE_THRESHOLD 100	// 最低接受货物价值
+#define PACKET_VALUE_THRESHOLD 180	// 最低接受货物价值
 
 #define ARRIVE_PACKET_OFFSET 10		// 取货时间偏移
+
+#define TIME_BOAT_MIN_STOP 20		// 最小停泊时间
+
 
 
 
@@ -52,7 +56,6 @@ using pii = pair<int, int>;
 #define INT_INF 0x3f3f3f3f
 #define GRAPH_SIZE 200	        	// 地图大小
 #define TIME_TO_BERTH 500			// 船到泊位的时间
-#define TIME_BOAT_MIN_STOP 20		// 最小停泊时间
 #define ROBOT_NUM 	10	        	// 机器人数量
 #define BERTH_NUM 	10	        	// 泊位数量
 #define BERTH_SIZE	4				// 泊位

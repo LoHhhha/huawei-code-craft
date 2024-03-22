@@ -60,6 +60,10 @@ void init() {
 		if(use_berth[i]){
 			boat[boat_idx].bind_berth_id=i;
 			boat[boat_idx].go_to_berth(i);
+			#ifdef ENABLE_BOAT_SECOND_GO
+				int second_loading_time = boat[boat_idx].capacity / berth[i].loading_speed + 10;
+				msg_handler.add_an_event(FRAME_COUNT - berth[i].transport_time*3 - second_loading_time, boat_idx, MSG_BOAT_NEED_GO);msg_handler.add_an_event(FRAME_COUNT-TIME_BOAT_MIN_STOP-3*berth[i].transport_time,boat_idx,MSG_BOAT_NEED_GO);
+			#endif
 			msg_handler.add_an_event(FRAME_COUNT-berth[i].transport_time,boat_idx,MSG_BOAT_NEED_GO);
 			boat_idx++;
 		}
