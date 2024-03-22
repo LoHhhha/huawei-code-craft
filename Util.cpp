@@ -146,7 +146,7 @@ void get_berth_order(){
 			int y1=n1%BERTH_SIZE,y2=n2%BERTH_SIZE;
 			return dict[x1][y1]>dict[x2][y2];
 		});
-		berth_block_order[idx].erase(berth_block_order[idx].begin(),berth_block_order[idx].begin()+8);
+		berth_block_order[idx].erase(berth_block_order[idx].begin(),berth_block_order[idx].begin()+NOT_USE_BERTH_BLOCK_NUM);
 	}
 }
 
@@ -283,30 +283,43 @@ void choose_best_berth(int num){
 	choose(0,num);
 
 	// 维护go_to_which_berth
-	for(int i=0;i<GRAPH_SIZE;i++){
-		for(int j=0;j<GRAPH_SIZE;j++){
-			go_to_which_berth[i][j].first=-1;
-			go_to_which_berth[i][j].second=INT_INF;
+	current_berth_use_hash=0;
+	for(int i=0;i<BERTH_NUM;i++){
+		if(use_berth[i]){
+			current_berth_use_hash|=1<<i;
 		}
 	}
-	for(int i=0;i<GRAPH_SIZE;i++){
-		for(int j=0;j<GRAPH_SIZE;j++){
-			for(int idx=0;idx<BERTH_NUM;idx++){
-				if(use_berth[idx]&&berths_to_point_dict[i][j][idx]!=INT_INF){
-					if(
-						go_to_which_berth[i][j].first==-1||
-						go_to_which_berth[i][j].second>berths_to_point_dict[i][j][idx]||(
-							go_to_which_berth[i][j].second==berths_to_point_dict[i][j][idx]&&
-							berth[idx].transport_time>berth[go_to_which_berth[i][j].first].transport_time
-						)
-					){
-						go_to_which_berth[i][j].first=idx;
-						go_to_which_berth[i][j].second=berths_to_point_dict[i][j][idx];
+
+	for(int mask=current_berth_use_hash;mask>=0;mask=current_berth_use_hash&(mask-1)){
+		auto &cur_go_to_which_berth=go_to_which_berth[mask];
+		for(int i=0;i<GRAPH_SIZE;i++){
+			for(int j=0;j<GRAPH_SIZE;j++){
+				cur_go_to_which_berth[i][j].first-1;
+				cur_go_to_which_berth[i][j].second=INT_INF;
+			}
+		}
+		if(mask==0)break;
+
+		for(int i=0;i<GRAPH_SIZE;i++){
+			for(int j=0;j<GRAPH_SIZE;j++){
+				for(int idx=0;idx<BERTH_NUM;idx++){
+					if(((mask>>idx)&1)&&berths_to_point_dict[i][j][idx]!=INT_INF){
+						if(
+							cur_go_to_which_berth[i][j].first==-1||
+							cur_go_to_which_berth[i][j].second>berths_to_point_dict[i][j][idx]||(
+								cur_go_to_which_berth[i][j].second==berths_to_point_dict[i][j][idx]&&
+								berth[idx].transport_time>berth[cur_go_to_which_berth[i][j].first].transport_time
+							)
+						){
+							cur_go_to_which_berth[i][j].first=idx;
+							cur_go_to_which_berth[i][j].second=berths_to_point_dict[i][j][idx];
+						}
 					}
 				}
 			}
 		}
 	}
+
 
 	// 维护所有使用的泊位的位置
 	for(int berth_idx=0;berth_idx<BERTH_NUM;berth_idx++){

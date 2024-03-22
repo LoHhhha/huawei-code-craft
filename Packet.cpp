@@ -95,8 +95,8 @@ bool Packet::broadcast() {
 						int t1=step+1;		// 机器人到达当前货物所需时间
 						int t2=rb.arrive_time()-frame;
 
-						t1 += go_to_which_berth[this->x][this->y].second;	// 当前货物到达泊位所需时间
-						t2 += go_to_which_berth[origin_packet.x][origin_packet.y].second;	// 原货物到达泊位所需时间
+						t1 += go_to_which_berth[current_berth_use_hash][this->x][this->y].second;	// 当前货物到达泊位所需时间
+						t2 += go_to_which_berth[current_berth_use_hash][origin_packet.x][origin_packet.y].second;	// 原货物到达泊位所需时间
 
 						t1 +=frame-rb.pre_pull_packet_frame;
 

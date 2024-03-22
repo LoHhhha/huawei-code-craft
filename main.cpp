@@ -194,7 +194,7 @@ void solve(){
 		sort_robot[i]=&robot[i];
 	}
 	sort(sort_robot.begin(),sort_robot.end(),[&](auto &p1,auto &p2){
-		return go_to_which_berth[p1->x][p1->y].second<go_to_which_berth[p2->x][p2->y].second;
+		return go_to_which_berth[current_berth_use_hash][p1->x][p1->y].second<go_to_which_berth[current_berth_use_hash][p2->x][p2->y].second;
 	});
 
 	for(int i=0;i<ROBOT_NUM;i++){

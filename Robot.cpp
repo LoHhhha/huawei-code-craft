@@ -415,7 +415,7 @@ bool Robot::go_to_nearest_berth(){
 	}
 
 	this->update_dict();
-	int nearest_berth=go_to_which_berth[this->x][this->y].first;
+	int nearest_berth=go_to_which_berth[current_berth_use_hash][this->x][this->y].first;
 
 	// 不可能发生的情况
 	if(nearest_berth==-1){
@@ -483,8 +483,8 @@ bool Robot::find_a_best_packet(){
 			}
 			else{
 				Packet &best_packet=packet[best_packet_id];
-				int t_best=this->shortest_dict[best_packet.x][best_packet.y]-frame+go_to_which_berth[best_packet.x][best_packet.y].second;
-				int t_cur=this->shortest_dict[p.x][p.y]-frame+go_to_which_berth[p.x][p.y].second;
+				int t_best=this->shortest_dict[best_packet.x][best_packet.y]-frame+go_to_which_berth[current_berth_use_hash][best_packet.x][best_packet.y].second;
+				int t_cur=this->shortest_dict[p.x][p.y]-frame+go_to_which_berth[current_berth_use_hash][p.x][p.y].second;
 				if(p.value*t_best>best_packet.value*t_cur){
 					best_packet_id=packet_id;
 				}
@@ -558,8 +558,8 @@ bool Robot::change_if_have_better_packet(){
 				if(this->shortest_dict[check_x][check_y]>p.timeout-ARRIVE_PACKET_OFFSET){
 					continue;
 				}
-				int new_dict=this->shortest_dict[check_x][check_y]-frame+go_to_which_berth[check_x][check_y].second;
-				int old_dict=this->arrive_time()-frame+go_to_which_berth[check_x][check_y].second;
+				int new_dict=this->shortest_dict[check_x][check_y]-frame+go_to_which_berth[current_berth_use_hash][check_x][check_y].second;
+				int old_dict=this->arrive_time()-frame+go_to_which_berth[current_berth_use_hash][check_x][check_y].second;
 				if(p.value>pre_p.value){
 					packet_unbook(pre_p.id);
 					this->target_packet_id=-1;

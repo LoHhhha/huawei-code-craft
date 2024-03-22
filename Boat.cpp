@@ -1,5 +1,6 @@
 #include "Param.hpp"
-#include"Boat.hpp"
+#include "Boat.hpp"
+#include "Berth.hpp"
 
 void send_ship(int id, int berth_id) { cout << "ship " << id << " " << berth_id << endl; };
 void send_go(int id) { cout << "go " << id << endl; };
@@ -23,7 +24,16 @@ void Boat::go_to_berth(int target_berth_id){
 
 // 预期复杂度：1
 // 指示前往交货
+// 此处同时处理泊位
 void Boat::deliver(){
+	#ifdef ENABLE_BERTH_DEAD
+		if(this->berth_id!=-1){
+			auto &b=berth[this->berth_id];
+			if(2*b.transport_time+TIME_TO_BERTH+TIME_BOAT_MIN_STOP+frame>FRAME_COUNT){
+				current_berth_use_hash^=(1<<this->berth_id);
+			}
+		}
+	#endif
 	// printf(GO_OP,this->id);
 	send_go(this->id);
 }

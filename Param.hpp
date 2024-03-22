@@ -8,7 +8,11 @@
 #define DEBUG_FRAME 10	// 调试模式：调试帧数
 
 // #define ENABLE_PACKET_BROADCAST
+
 #define ENABLE_BERTH_ORDERED_BY_DICT
+#define NOT_USE_BERTH_BLOCK_NUM 7
+
+#define ENABLE_BERTH_DEAD
 
 
 #ifdef DE_BUG	 
@@ -37,6 +41,8 @@ using pii = pair<int, int>;
 #define LLONG_INF 0x3f3f3f3f3f3f3f3f
 #define INT_INF 0x3f3f3f3f
 #define GRAPH_SIZE 200	        	// 地图大小
+#define TIME_TO_BERTH 500			// 船到泊位的时间
+#define TIME_BOAT_MIN_STOP 50		// 最小停泊时间
 #define ROBOT_NUM 	10	        	// 机器人数量
 #define BERTH_NUM 	10	        	// 泊位数量
 #define BERTH_SIZE	4				// 泊位
@@ -71,13 +77,14 @@ extern int frame;	// 当前帧数
 extern int money;	// 当前金钱数
 
 // ---------- begin graph ----------
-extern int graph[GRAPH_SIZE][GRAPH_SIZE];	                // 地图 vector 障碍:-1 空地:0 停泊点:1 机器人:2 货物:4 （二进制）
-extern set<int> book[GRAPH_SIZE][GRAPH_SIZE];	       		// 点被预定的情况
-extern pii go_to_which_berth[GRAPH_SIZE][GRAPH_SIZE];		// 场上每一个点去哪一个泊位{id, dict} 注意：当id==-1或者dict==INT_INF时不可达！
-extern bool robot_can_go[GRAPH_SIZE][GRAPH_SIZE];           // 维护机器人能到达的点
+extern int graph[GRAPH_SIZE][GRAPH_SIZE];	                					// 地图 vector 障碍:-1 空地:0 停泊点:1 机器人:2 货物:4 （二进制）
+extern set<int> book[GRAPH_SIZE][GRAPH_SIZE];	       							// 点被预定的情况
+extern map<int,array<array<pii,GRAPH_SIZE>,GRAPH_SIZE>>go_to_which_berth;		// 场上每一个点去哪一个泊位{id, dict} 注意：当id==-1或者dict==INT_INF时不可达！
+extern bool robot_can_go[GRAPH_SIZE][GRAPH_SIZE];           					// 维护机器人能到达的点
 extern unordered_set<int> berth_point_hash;
-extern bool use_berth_can_go[GRAPH_SIZE][GRAPH_SIZE];		// 维护选择的机器人能到达的点
-extern vector<int>berth_block_order[BERTH_NUM];				// 
+extern bool use_berth_can_go[GRAPH_SIZE][GRAPH_SIZE];							// 维护选择的机器人能到达的点
+extern vector<int>berth_block_order[BERTH_NUM];									// 泊位选择次序
+extern int current_berth_use_hash;
 // ---------- end graph ----------
 
 
