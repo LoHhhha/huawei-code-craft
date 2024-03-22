@@ -36,5 +36,7 @@ void Boat::deliver(){
 	#endif
 	// printf(GO_OP,this->id);
 	send_go(this->id);
+	trans_packet_count+=this->load;
+	this->load=0;
 }
 // ---------- end Boat方法实现 ----------

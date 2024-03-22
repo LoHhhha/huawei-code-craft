@@ -146,11 +146,12 @@ void checker(){
 	// 船检查是否已满
 	for(int i=0;i<BOAT_NUM;i++){
 		if(boat[i].load>=boat[i].capacity){
-			boat[i].load=0;
 			boat[i].deliver();
-			msg_handler.add_an_event(frame+berth[boat[i].berth_id].transport_time,i,MSG_BOAT_NEED_BACK);
 			if(boat[i].berth_id==-1){
 				fprintf(stderr, "#Warning: [%d]Checker:: Boat::%d full but not in any berth.\n", frame, i);
+			}
+			else{
+				msg_handler.add_an_event(frame+berth[boat[i].berth_id].transport_time,i,MSG_BOAT_NEED_BACK);
 			}
 		}
 	}
@@ -261,6 +262,8 @@ int main() {
 		fprintf(stderr,"#Note(main::solve): [%d]Using %fms.\n\n",frame,double(end-start));
 		cout<<double(end-start)<<endl;
 	}
+
+	fprintf(stderr,"#Note(main::solve): Transport %d packets.\n",trans_packet_count);
 
 	return 0;
 }

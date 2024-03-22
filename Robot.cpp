@@ -264,9 +264,17 @@ bool Robot::go_to_next_point() {
 		if(need_cancel){
 			fprintf(stderr,"#Error(Robot::go_to_next_point): [%d]Robot::%d(%d,%d) will crush if it contiune to go.\n", frame, this->id, this->x, this->y);
 			this->cancel_path_book();
-			return false;
+			this->find_a_best_packet();
+			this->go_to_nearest_berth();
+			if(this->path.empty()){
+				return false;
+			}
 		}
 	}
+
+	frame_to_go=this->path.back().first;
+	point_hash=this->path.back().second;
+	next_x = point_hash/GRAPH_SIZE, next_y = point_hash%GRAPH_SIZE;
 
 	if (frame == frame_to_go) {
 		bool isok = false;

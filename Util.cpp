@@ -44,32 +44,46 @@ void get_robot_can_go(){
 // 依赖use_berth
 // 更新use_berth_can_go
 void get_use_berth_can_go(){
-	queue<int>qu;
-	for(int berth_idx=0;berth_idx<BERTH_NUM;berth_idx++){
-		if(use_berth){
-			for(int i=0;i<BERTH_SIZE;i++){
-				for(int j=0;j<BERTH_SIZE;j++){
-					qu.push((i+berth[berth_idx].x)*GRAPH_SIZE+j+berth[berth_idx].y);
-					use_berth_can_go[i+berth[berth_idx].x][j+berth[berth_idx].y]=true;
+	for(int mask=current_berth_use_hash;mask>=0;mask=(mask-1)&current_berth_use_hash){
+		queue<int>qu;
+		
+		auto &berth_can_go=use_berth_can_go[mask];
+
+		for(int i=0;i<GRAPH_SIZE;i++){
+			for(int j=0;j<GRAPH_SIZE;j++){
+				berth_can_go[i][j]=false;
+			}
+		}
+		if(mask==0){
+			break;
+		}
+
+		for(int berth_idx=0;berth_idx<BERTH_NUM;berth_idx++){
+			if(use_berth){
+				for(int i=0;i<BERTH_SIZE;i++){
+					for(int j=0;j<BERTH_SIZE;j++){
+						qu.push((i+berth[berth_idx].x)*GRAPH_SIZE+j+berth[berth_idx].y);
+						berth_can_go[i+berth[berth_idx].x][j+berth[berth_idx].y]=true;
+					}
 				}
 			}
 		}
-	}
 
-	while(!qu.empty()){
-		int qn=qu.size();
-		while(qn--){
-			auto point_hash=qu.front();
-			int current_x = point_hash/GRAPH_SIZE, current_y = point_hash%GRAPH_SIZE;
-			qu.pop();
-			for(auto &[dx,dy]:dir){
-				int next_x = current_x+dx, next_y = current_y+dy;
-				if (next_x>=GRAPH_SIZE || next_y>=GRAPH_SIZE || next_x<0 || next_y<0) {
-					continue;
-				}
-				if(graph[next_x][next_y]!=-1&&!use_berth_can_go[next_x][next_y]){
-					qu.push(next_x*GRAPH_SIZE+next_y);
-					use_berth_can_go[next_x][next_y]=true;
+		while(!qu.empty()){
+			int qn=qu.size();
+			while(qn--){
+				auto point_hash=qu.front();
+				int current_x = point_hash/GRAPH_SIZE, current_y = point_hash%GRAPH_SIZE;
+				qu.pop();
+				for(auto &[dx,dy]:dir){
+					int next_x = current_x+dx, next_y = current_y+dy;
+					if (next_x>=GRAPH_SIZE || next_y>=GRAPH_SIZE || next_x<0 || next_y<0) {
+						continue;
+					}
+					if(graph[next_x][next_y]!=-1&&!berth_can_go[next_x][next_y]){
+						qu.push(next_x*GRAPH_SIZE+next_y);
+						berth_can_go[next_x][next_y]=true;
+					}
 				}
 			}
 		}
@@ -354,7 +368,7 @@ void choose_best_berth(int num){
 
 // 生成货物
 bool generate_packet(int x, int y, int packet_money) {
-	if(use_berth_can_go[x][y]&&packet_money>=PACKET_VALUE_THRESHOLD){
+	if(use_berth_can_go[current_berth_use_hash][x][y]&&packet_money>=PACKET_VALUE_THRESHOLD){
 		Packet p(++packet_id, x, y, packet_money, frame + PACKET_TIME_OUT);	// 在 1000 帧后过期
 		packet[packet_id] = p;						// 在货物表中添加
 		hash2packet[x*GRAPH_SIZE+y] = packet_id;	// 在哈希表中添加 [[x*GRAPH_SIZE+y] -> packet_id]
