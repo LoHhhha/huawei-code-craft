@@ -574,6 +574,7 @@ bool Robot::change_if_have_better_packet(){
 					if(this->set_and_book_a_path_to(check_x,check_y)){
 						this->target_packet_id=p.id;
 						packet_be_booked(p.id,this->id);
+						fprintf(stderr,"#Note(Robot::change_if_have_better_packet): [%d]Robot::%d(%d,%d) change its target_packet from Packet::%d to Packet::%d.\n", frame, this->id, this->x, this->y, pre_p.id, this->target_packet_id);
 						return true;
 					}
 				}

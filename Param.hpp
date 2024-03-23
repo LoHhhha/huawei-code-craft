@@ -7,7 +7,7 @@
 #define DEBUG_STATE 1	// 调试模式： 0：关闭，1：终端，2：cph
 #define DEBUG_FRAME FRAME_COUNT	// 调试模式：调试帧数
 
-// #define ENABLE_STDERR   // 开启stderr输出
+#define ENABLE_STDERR   // 开启stderr输出
 
 // #define ENABLE_PACKET_BROADCAST
 #define PACKET_SWITCH_RATE 4		// 换货比值
@@ -19,11 +19,11 @@
 
 #define ENABLE_BERTH_DEAD
 
-#define SEARCH_PACKET_BOUND 25		// 更优货物扩展寻找幅度
+#define SEARCH_PACKET_BOUND 20		// 更优货物扩展寻找幅度
 
-#define PACKET_VALUE_THRESHOLD 115	// 最低接受货物价值
+#define PACKET_VALUE_THRESHOLD 120	// 最低接受货物价值
 
-#define ARRIVE_PACKET_OFFSET 10		// 取货时间偏移
+#define ARRIVE_PACKET_OFFSET 50		// 取货时间偏移
 
 #define TIME_BOAT_MIN_STOP 20		// 最小停泊时间
 
