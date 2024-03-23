@@ -41,7 +41,8 @@ MsgHandler::MsgHandler(){
                 frame, msg.frame, msg.obj_id, msg.event);
             return;
         }
-        boat[msg.obj_id].go_to_berth(boat[msg.obj_id].bind_berth_id);
+        if (boat[msg.obj_id].status==1 && boat[msg.obj_id].berth_id==-1)
+            boat[msg.obj_id].go_to_berth(boat[msg.obj_id].bind_berth_id);
     };
     f[MSG_BOAT_NEED_BACK]=boat_back;
 
@@ -52,7 +53,7 @@ MsgHandler::MsgHandler(){
                 frame, msg.frame, msg.obj_id, msg.event);
             return;
         }
-        if(boat[msg.obj_id].status==1){
+        if(boat[msg.obj_id].status==1 && boat[msg.obj_id].berth_id!=-1){
             boat[msg.obj_id].deliver();
         }
     };
