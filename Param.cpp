@@ -21,7 +21,7 @@ set<int> book[GRAPH_SIZE][GRAPH_SIZE];
 // vector<vector<map<int,int>>> book(GRAPH_SIZE, vector<map<int,int>>(GRAPH_SIZE));	// pii:{book_frame,id} 点被预定的情况
 map<int,array<array<pii,GRAPH_SIZE>,GRAPH_SIZE>>go_to_which_berth;;		// 在泊位为mask时场上每一个点去哪一个泊位{id, dict} 注意：当id==-1或者dict==INT_INF时不可达！
 bool robot_can_go[GRAPH_SIZE][GRAPH_SIZE]{0};  // 维护机器人能到达的点
-map<int,array<array<bool,GRAPH_SIZE>,GRAPH_SIZE>>use_berth_can_go;  // 维护选择的机器人能到达的点
+array<array<array<bool,GRAPH_SIZE>,GRAPH_SIZE>,(1<<BERTH_NUM)>use_berth_can_go;  // 维护选择的机器人能到达的点
 unordered_set<int> berth_point_hash;
 vector<int>berth_block_order[BERTH_NUM];
 int current_berth_use_hash=0;

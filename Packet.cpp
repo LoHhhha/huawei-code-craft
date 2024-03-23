@@ -46,7 +46,7 @@ bool Packet::broadcast() {
 				if (graph[next_x][next_y] == -1) {	// 障碍
 					continue;
 				}
-				if (step+1 >= PACKET_TIME_OUT-ARRIVE_PACKET_OFFSET) {	// 超时，剩余200帧机动
+				if (step+1 >= PACKET_TIME_OUT-ARRIVE_PACKET_OFFSET) {	// 超时
 					isok = true;
 					break;
 				}

@@ -7,28 +7,32 @@
 #define DEBUG_STATE 1	// 调试模式： 0：关闭，1：终端，2：cph
 #define DEBUG_FRAME FRAME_COUNT	// 调试模式：调试帧数
 
+// #define ENABLE_STDERR   // 开启stderr输出
+
 // #define ENABLE_PACKET_BROADCAST
 #define PACKET_SWITCH_RATE 4		// 换货比值
+
+// #define ENABLE_BOAT_SECOND_GO
 
 #define ENABLE_BERTH_ORDERED_BY_DICT
 #define NOT_USE_BERTH_BLOCK_NUM 7
 
 #define ENABLE_BERTH_DEAD
 
-#define SEARCH_PACKET_BOUND 20		// 更优货物扩展寻找幅度
+#define SEARCH_PACKET_BOUND 25		// 更优货物扩展寻找幅度
 
-#define PACKET_VALUE_THRESHOLD 100	// 最低接受货物价值
+#define PACKET_VALUE_THRESHOLD 115	// 最低接受货物价值
 
 #define ARRIVE_PACKET_OFFSET 10		// 取货时间偏移
 
-// #define ENABLE_BOAT_SECOND_GO		// 船第二次出发
+#define TIME_BOAT_MIN_STOP 20		// 最小停泊时间
+
 
 
 
 #ifdef DE_BUG	 
 	#define FRAME_TO_RUN DEBUG_FRAME	
 	#define THIS_DEBUG_STATE DEBUG_STATE
-	#define ENABLE_STDERR   // 开启stderr输出
 #else
 	#define FRAME_TO_RUN FRAME_COUNT
 	#define THIS_DEBUG_STATE 0
@@ -52,7 +56,6 @@ using pii = pair<int, int>;
 #define INT_INF 0x3f3f3f3f
 #define GRAPH_SIZE 200	        	// 地图大小
 #define TIME_TO_BERTH 500			// 船到泊位的时间
-#define TIME_BOAT_MIN_STOP 20		// 最小停泊时间
 #define ROBOT_NUM 	10	        	// 机器人数量
 #define BERTH_NUM 	10	        	// 泊位数量
 #define BERTH_SIZE	4				// 泊位
@@ -90,7 +93,7 @@ extern set<int> book[GRAPH_SIZE][GRAPH_SIZE];	       							// 点被预定的�
 extern map<int,array<array<pii,GRAPH_SIZE>,GRAPH_SIZE>>go_to_which_berth;		// 场上每一个点去哪一个泊位{id, dict} 注意：当id==-1或者dict==INT_INF时不可达！
 extern bool robot_can_go[GRAPH_SIZE][GRAPH_SIZE];           					// 维护机器人能到达的点
 extern unordered_set<int> berth_point_hash;
-extern map<int,array<array<bool,GRAPH_SIZE>,GRAPH_SIZE>>use_berth_can_go;		// 维护选择的机器人能到达的点
+extern array<array<array<bool,GRAPH_SIZE>,GRAPH_SIZE>,(1<<BERTH_NUM)>use_berth_can_go;		// 维护选择的机器人能到达的点
 extern vector<int>berth_block_order[BERTH_NUM];									// 泊位选择次序
 extern int current_berth_use_hash;
 // ---------- end graph ----------
