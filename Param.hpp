@@ -21,6 +21,8 @@
 
 #define ARRIVE_PACKET_OFFSET 10		// 取货时间偏移
 
+// #define ENABLE_BOAT_SECOND_GO		// 船第二次出发
+
 
 
 #ifdef DE_BUG	 
