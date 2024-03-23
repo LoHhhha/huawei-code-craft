@@ -19,9 +19,9 @@
 
 #define ENABLE_BERTH_DEAD
 
-#define SEARCH_PACKET_BOUND 20		// 更优货物扩展寻找幅度
+#define SEARCH_PACKET_BOUND 25		// 更优货物扩展寻找幅度
 
-#define PACKET_VALUE_THRESHOLD 180	// 最低接受货物价值
+#define PACKET_VALUE_THRESHOLD 115	// 最低接受货物价值
 
 #define ARRIVE_PACKET_OFFSET 10		// 取货时间偏移
 
@@ -93,7 +93,7 @@ extern set<int> book[GRAPH_SIZE][GRAPH_SIZE];	       							// 点被预定的�
 extern map<int,array<array<pii,GRAPH_SIZE>,GRAPH_SIZE>>go_to_which_berth;		// 场上每一个点去哪一个泊位{id, dict} 注意：当id==-1或者dict==INT_INF时不可达！
 extern bool robot_can_go[GRAPH_SIZE][GRAPH_SIZE];           					// 维护机器人能到达的点
 extern unordered_set<int> berth_point_hash;
-extern map<int,array<array<bool,GRAPH_SIZE>,GRAPH_SIZE>>use_berth_can_go;		// 维护选择的机器人能到达的点
+extern array<array<array<bool,GRAPH_SIZE>,GRAPH_SIZE>,(1<<BERTH_NUM)>use_berth_can_go;		// 维护选择的机器人能到达的点
 extern vector<int>berth_block_order[BERTH_NUM];									// 泊位选择次序
 extern int current_berth_use_hash;
 // ---------- end graph ----------

@@ -29,7 +29,7 @@ void Boat::deliver(){
 	#ifdef ENABLE_BERTH_DEAD
 		if(this->berth_id!=-1){
 			auto &b=berth[this->berth_id];
-			if(3*b.transport_time+((this->capacity+b.loading_speed-1)/b.loading_speed)/2+frame>FRAME_COUNT){
+			if(3*b.transport_time+TIME_BOAT_MIN_STOP+frame>FRAME_COUNT){
 				current_berth_use_hash&=((1<<BERTH_NUM)-1)^(1<<this->berth_id);
 			}
 		}

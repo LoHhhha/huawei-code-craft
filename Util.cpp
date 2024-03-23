@@ -39,12 +39,13 @@ void get_robot_can_go(){
 	}
 }
 
-// 预期复杂度：4e4
+// 预期复杂度：3e7
 // 预处理选择泊位可到达的点
 // 依赖use_berth
 // 更新use_berth_can_go
 void get_use_berth_can_go(){
-	for(int mask=current_berth_use_hash;mask>=0;mask=(mask-1)&current_berth_use_hash){
+	int full_mask=(1<<BERTH_NUM)-1;
+	for(int mask=full_mask;mask>=0;mask=(mask-1)&full_mask){
 		queue<int>qu;
 		
 		auto &berth_can_go=use_berth_can_go[mask];
@@ -304,11 +305,12 @@ void choose_best_berth(int num){
 		}
 	}
 
-	for(int mask=current_berth_use_hash;mask>=0;mask=current_berth_use_hash&(mask-1)){
+	int full_mask=(1<<BERTH_NUM)-1;
+	for(int mask=full_mask;mask>=0;mask=(mask-1)&full_mask){
 		auto &cur_go_to_which_berth=go_to_which_berth[mask];
 		for(int i=0;i<GRAPH_SIZE;i++){
 			for(int j=0;j<GRAPH_SIZE;j++){
-				cur_go_to_which_berth[i][j].first-1;
+				cur_go_to_which_berth[i][j].first=-1;
 				cur_go_to_which_berth[i][j].second=INT_INF;
 			}
 		}
@@ -322,7 +324,7 @@ void choose_best_berth(int num){
 							cur_go_to_which_berth[i][j].first==-1||
 							cur_go_to_which_berth[i][j].second>berths_to_point_dict[i][j][idx]||(
 								cur_go_to_which_berth[i][j].second==berths_to_point_dict[i][j][idx]&&
-								berth[idx].transport_time>berth[cur_go_to_which_berth[i][j].first].transport_time
+								berth[idx].transport_time<berth[cur_go_to_which_berth[i][j].first].transport_time
 							)
 						){
 							cur_go_to_which_berth[i][j].first=idx;
