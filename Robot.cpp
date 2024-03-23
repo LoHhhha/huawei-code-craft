@@ -294,8 +294,8 @@ bool Robot::go_to_next_point() {
 	else if(frame>frame_to_go){
 		if(current_x!=next_x||current_y!=next_y){
 			fprintf(stderr,"#Error(Robot::go_to_next_point): [%d]Robot::%d(%d,%d) fail to move to point(%d,%d) because timeout.\n",frame,this->id,this->x,this->y,next_x,next_y);
-			this->cancel_path_book();
 		}
+		this->cancel_path_book();
 	}
 
 	this->path.pop_back();
@@ -312,7 +312,9 @@ void Robot::cancel_path_book(){
 		this->path.pop_back();
 
 		int p_x = point_hash/GRAPH_SIZE, p_y = point_hash%GRAPH_SIZE;
-		book[p_x][p_y].erase(rframe+1);
+		if(p_x>=GRAPH_SIZE || p_y>=GRAPH_SIZE || p_x<0 || p_y<0){
+			book[p_x][p_y].erase(rframe+1);
+		}
 	}
 	this->target_berth_id=-1,this->target_packet_id=-1;
 	fprintf(stderr,"#Note(Robot::cancel_path_book): [%d]Robot::%d(%d,%d) clear path.\n",frame,this->id,this->x,this->y);
@@ -342,6 +344,7 @@ void Robot::get_packet(){
 	send_get(this->id);
 	this->target_packet_id=-1;
 	take_packet(this->packet_id);
+	this->change_packet_time=0;
 }
 
 // 期望复杂度：1
@@ -474,49 +477,120 @@ bool Robot::go_to_nearest_berth(){
 // 注意：本函数可多次调用【只要未拿到包裹可随时更新最优】
 bool Robot::find_a_best_packet(){
 	// 目前有货物未预定 且当前机器人不是在恢复状态 且没有拿到货物 且没有货物
-	if(unbooked_packet.empty()||this->status==0||this->packet_id!=-1||this->target_packet_id!=-1){
-		// fprintf(stderr,"#Warning(Robot::find_a_best_packet): [%d]Robot::%d(%d,%d) cannot get a packet, status=%d, packet_id=%d, unbooked_packet.empty()=%d.\n", frame, this->id, this->x, this->y, this->status, this->packet_id,unbooked_packet.empty());
-		return false;
-	}
+	#ifndef ENABLE_GET_PACKET_FROM_BOOKED
+		if (unbooked_packet.empty() || this->status==0 || this->packet_id!=-1 || this->target_packet_id!=-1){
+			// fprintf(stderr,"#Warning(Robot::find_a_best_packet): [%d]Robot::%d(%d,%d) cannot get a packet, status=%d, packet_id=%d, unbooked_packet.empty()=%d.\n", frame, this->id, this->x, this->y, this->status, this->packet_id,unbooked_packet.empty());
+			return false;
+		}
+	#else
+		if (packet.empty() || this->status==0 || this->packet_id!=-1 || this->target_packet_id!=-1){
+			// fprintf(stderr,"#Warning(Robot::find_a_best_packet): [%d]Robot::%d(%d,%d) cannot get a packet, status=%d, packet_id=%d, unbooked_packet.empty()=%d.\n", frame, this->id, this->x, this->y, this->status, this->packet_id,unbooked_packet.empty());
+			return false;
+		}
+	#endif
 
 	this->update_dict();
-
-	int best_packet_id=this->target_packet_id;
-	for(auto &packet_id:unbooked_packet){
-		auto &p=packet[packet_id];
-		// 抵达货物时不会超时
-		if(packet[packet_id].timeout-ARRIVE_PACKET_OFFSET>this->shortest_dict[p.x][p.y]){
-			if(best_packet_id==-1){
-				best_packet_id=packet_id;
-			}
-			else{
-				Packet &best_packet=packet[best_packet_id];
-				int t_best=this->shortest_dict[best_packet.x][best_packet.y]-frame+go_to_which_berth[current_berth_use_hash][best_packet.x][best_packet.y].second;
-				int t_cur=this->shortest_dict[p.x][p.y]-frame+go_to_which_berth[current_berth_use_hash][p.x][p.y].second;
-				if(p.value*t_best>best_packet.value*t_cur){
-					best_packet_id=packet_id;
+	int best_packet_id = this->target_packet_id;
+	#ifndef ENABLE_GET_PACKET_FROM_BOOKED	// 从未预定的货物中选择
+		for (auto &packet_id:unbooked_packet) {
+			auto &p=packet[packet_id];
+			// 抵达货物时不会超时
+			if (packet[packet_id].timeout-ARRIVE_PACKET_OFFSET > this->shortest_dict[p.x][p.y]) {
+				if (best_packet_id == -1) {
+					best_packet_id = packet_id;
 				}
-				else if(p.value*t_best==best_packet.value*t_cur&&p.value>best_packet.value){
-					best_packet_id=packet_id;
+				else {
+					Packet &best_packet = packet[best_packet_id];
+					int t_best = this->shortest_dict[best_packet.x][best_packet.y]-frame+go_to_which_berth[current_berth_use_hash][best_packet.x][best_packet.y].second;
+					int t_cur = this->shortest_dict[p.x][p.y]-frame+go_to_which_berth[current_berth_use_hash][p.x][p.y].second;
+					if (p.value*t_best>best_packet.value*t_cur) {
+						best_packet_id=packet_id;
+					}
+					else if (p.value*t_best == best_packet.value*t_cur && p.value > best_packet.value) {
+						best_packet_id=packet_id;
+					}
 				}
 			}
 		}
-	}
+	#else	// 同时考虑已预定的货物
+		for (auto &[packet_id,p]:packet) {
+			// 当货物被拿走时取消考虑
+			if (p.status >= ROBOT_NUM) {
+				continue;
+			}
+			// 超时
+			if (packet[packet_id].timeout-ARRIVE_PACKET_OFFSET < this->shortest_dict[p.x][p.y]) {
+				continue;
+			}
+			if(best_packet_id==-1){
+				// 当货物没被考虑
+				if (p.status==-1) {
+					best_packet_id=packet_id;
+				}
+				// 当货物被考虑了
+				else if(robot[p.status].change_packet_time<MAX_PACKET_SWITCH){
+					int cur_dict = this->shortest_dict[p.x][p.y]-frame;
+					int other_dict = robot[p.status].arrive_time()-frame;
+					if (cur_dict*GET_PACKET_FROM_BOOKED_RATE < other_dict) {
+						best_packet_id = packet_id;
+					}
+				}
+			}
+			else{
+				Packet &best_packet = packet[best_packet_id];
+				int t_best = this->shortest_dict[best_packet.x][best_packet.y]-frame+go_to_which_berth[current_berth_use_hash][best_packet.x][best_packet.y].second;
+				int t_cur = this->shortest_dict[p.x][p.y]-frame+go_to_which_berth[current_berth_use_hash][p.x][p.y].second;
+				if (p.value*t_best > best_packet.value*t_cur || (p.value*t_best==best_packet.value*t_cur && p.value>best_packet.value)) {
+					// 当货物没被考虑
+					if (p.status==-1) {
+						best_packet_id=packet_id;
+					}
+					// 当货物被考虑了
+					else if(robot[p.status].change_packet_time<MAX_PACKET_SWITCH){
+						int cur_dict = this->shortest_dict[p.x][p.y]-frame;
+						int other_dict = robot[p.status].arrive_time()-frame;
+						if (cur_dict*GET_PACKET_FROM_BOOKED_RATE < other_dict) {
+							best_packet_id = packet_id;
+						}
+					}
+				}
+			}
+		}
+	#endif
 
 	// 当更好的不是当前算到最好的则修改
-	if(this->target_packet_id!=best_packet_id&&best_packet_id!=-1){
-		if(this->target_packet_id!=-1)packet_unbook(this->target_packet_id);
+	if (this->target_packet_id!=best_packet_id && best_packet_id!=-1) {
+		if (this->target_packet_id != -1){
+			packet_unbook(this->target_packet_id);
+		}
 
-		int best_packet_x=packet[best_packet_id].x,best_packet_y=packet[best_packet_id].y;
+		auto &best_packet = packet[best_packet_id];
+
+		// 处理被抢的机器人
+		int other_robot_id = best_packet.status;
+		if (other_robot_id != -1) {
+			fprintf(stderr,"#Note(Robot::find_a_best_packet): [%d]Robot::%d(%d,%d) get Packet::%d from Robot::%d.\n", frame, this->id, this->x, this->y, best_packet_id, best_packet.status);
+			packet_unbook(robot[other_robot_id].target_packet_id);
+			robot[other_robot_id].target_packet_id = -1;
+			robot[other_robot_id].cancel_path_book();
+		}
+
+		int best_packet_x=best_packet.x,best_packet_y=best_packet.y;
 		this->cancel_path_book();
-		if(!this->set_and_book_a_path_to(best_packet_x,best_packet_y)){
+		if (!this->set_and_book_a_path_to(best_packet_x,best_packet_y)) {
 			fprintf(stderr,"#Note(Robot::find_a_best_packet): [%d]Robot::%d(%d,%d) keep its target_packet as Packet::%d, because path cann`t get.\n", frame, this->id, this->x, this->y, this->target_packet_id);
 			return false;
 		}
+		this->change_packet_time++;
 
 		packet_be_booked(best_packet_id,this->id);
 		this->target_packet_id=best_packet_id;
 		this->book_get_packet_event(this->shortest_dict[best_packet_x][best_packet_y]);
+
+		// 处理被抢的机器人
+		if(other_robot_id!=-1){
+			robot[other_robot_id].find_a_best_packet();
+		}
 
 		fprintf(stderr,"#Note(Robot::find_a_best_packet): [%d]Robot::%d(%d,%d) change its target_packet from Packet::%d to Packet::%d.\n", frame, this->id, this->x, this->y, this->target_packet_id, best_packet_id);
 		return true;
@@ -528,16 +602,16 @@ bool Robot::find_a_best_packet(){
 // 在前进方向上寻找一个更好的货物
 bool change_packet_vis[GRAPH_SIZE][GRAPH_SIZE];
 bool Robot::change_if_have_better_packet(){
-	if(this->packet_id!=-1||this->target_packet_id==-1){
+	if(this->packet_id!=-1 || this->target_packet_id==-1){
 		return false;
 	}
-	for(int i=0;i<GRAPH_SIZE;i++){
+	for (int i=0;i<GRAPH_SIZE;i++){
 		for(int j=0;j<GRAPH_SIZE;j++){
 			change_packet_vis[i][j]=false;
 		}
 	}
 	this->update_dict();
-	for(auto &[frame_to_go, point_hash]:this->path){
+	for(auto [frame_to_go, point_hash]:this->path){
 		int current_x = point_hash/GRAPH_SIZE, current_y = point_hash%GRAPH_SIZE;
 		for(int i=0;i<SEARCH_PACKET_BOUND;i++){
 			for(int j=0;j<SEARCH_PACKET_BOUND;j++){

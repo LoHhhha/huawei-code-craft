@@ -399,6 +399,7 @@ bool generate_packet(int x, int y, int packet_money) {
 void take_packet(int packet_id) {
 	auto &p=packet[packet_id];
 	graph[p.x][p.y] ^= PACKET_BIT;	// 在图中删除货物标记
+	p.status=ROBOT_NUM;		// 不指定谁拿走
 	hash2packet.erase(p.x*GRAPH_SIZE+p.y);	// 从哈希表中删除 x*GRAPH_SIZE+y
 }
 

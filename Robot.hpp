@@ -14,13 +14,14 @@ struct Robot {
 	int target_berth_id;							// -1：无目的泊位 其他整数: 泊位编号
 	int target_packet_id;							// -1：无目的货物 其他整数: 货物编号
 	int pre_pull_packet_frame;						// 上次放下货物帧数
+	int change_packet_time;							// 交换次数
 	int shortest_dict[GRAPH_SIZE][GRAPH_SIZE];		// 最短路记录矩阵，与update_dict / get_dict_to / get_and_book_a_path_to一并使用
 	// int sleep[GRAPH_SIZE][GRAPH_SIZE];			// 最短路等待记录矩阵，描述的是【去】该格等待的时间，与update_dict / get_dict_to / get_and_book_a_path_to一并使用
 	vector<pii> path;								// 维护机器人路径{frame_to_go（出发时间）, point_hash}，go_to_next_point
 
 	Robot() = default;
-	Robot(int id, int x, int y, int status): id(id), x(x), y(y), status(status), target_berth_id(-1), target_packet_id(-1), pre_pull_packet_frame(0) {
-		path.reserve(2000);			// 预留空间，减少内存申请
+	Robot(int id, int x, int y, int status): id(id), x(x), y(y), status(status), target_berth_id(-1), target_packet_id(-1), pre_pull_packet_frame(0), change_packet_time(0) {
+		path.reserve(3000);			// 预留空间，减少内存申请
 	}
 
 	void update_dict();

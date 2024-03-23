@@ -10,16 +10,20 @@
 // #define ENABLE_STDERR   // 开启stderr输出
 
 // #define ENABLE_PACKET_BROADCAST
-#define PACKET_SWITCH_RATE 4		// 换货比值
+#define PACKET_SWITCH_RATE 6		// 换货比值
 
 #define ENABLE_BOAT_SECOND_GO
 
+// #define ENABLE_GET_PACKET_FROM_BOOKED
+#define GET_PACKET_FROM_BOOKED_RATE 2
+#define MAX_PACKET_SWITCH 1
+
 #define ENABLE_BERTH_ORDERED_BY_DICT
-#define NOT_USE_BERTH_BLOCK_NUM 10
+#define NOT_USE_BERTH_BLOCK_NUM 12
 
 #define ENABLE_BERTH_DEAD
 
-#define SEARCH_PACKET_BOUND 15		// 更优货物扩展寻找幅度
+#define SEARCH_PACKET_BOUND 25		// 更优货物扩展寻找幅度
 
 #define PACKET_VALUE_THRESHOLD 175	// 最低接受货物价值
 

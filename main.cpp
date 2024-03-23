@@ -61,7 +61,7 @@ void init() {
 			boat[boat_idx].bind_berth_id=i;
 			boat[boat_idx].go_to_berth(i);
 			#ifdef ENABLE_BOAT_SECOND_GO
-				int second_loading_time = boat[boat_idx].capacity / berth[i].loading_speed + 10;
+				int second_loading_time = boat[boat_idx].capacity / berth[i].loading_speed + TIME_BOAT_MIN_STOP;
 				msg_handler.add_an_event(FRAME_COUNT - berth[i].transport_time*3 - second_loading_time, boat_idx, MSG_BOAT_NEED_GO);
 				msg_handler.add_an_event(FRAME_COUNT - berth[i].transport_time*2 - second_loading_time, boat_idx, MSG_BOAT_NEED_BACK);
 			#endif
@@ -244,7 +244,7 @@ int main() {
 		// NEWLINE = true;	// 是否换行，会作用于容器内的对象，覆盖SEP
 	#endif
 	#if (THIS_DEBUG_STATE == 1)	// 调试模式： 0：关闭，1：终端，2：cph
-		freopen("z_judge_output1.txt", "r", stdin);
+		freopen("input.txt", "r", stdin);
 		freopen("user_output.txt", "w", stdout);
 	#endif
 	freopen("debug_output.txt", "w", stderr);	// 重定向错误流
