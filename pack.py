@@ -11,6 +11,7 @@ def files2zip(zip_file_name: str, file_list: list):
 
 
 file_list=[file for file in os.listdir("./") if file.endswith(".cpp") or file.endswith(".hpp") or file.endswith(".h") or file=="CMakeLists.txt"]
+# file_list=[file for file in os.listdir("./") if file.endswith(".cpp") or file.endswith(".hpp") or file.endswith(".h")]
 
 output_dir="./output"
 if not os.path.exists(output_dir):

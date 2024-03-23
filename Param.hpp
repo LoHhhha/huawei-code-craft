@@ -15,13 +15,13 @@
 #define ENABLE_BOAT_SECOND_GO
 
 #define ENABLE_BERTH_ORDERED_BY_DICT
-#define NOT_USE_BERTH_BLOCK_NUM 7
+#define NOT_USE_BERTH_BLOCK_NUM 10
 
 #define ENABLE_BERTH_DEAD
 
-#define SEARCH_PACKET_BOUND 20		// 更优货物扩展寻找幅度
+#define SEARCH_PACKET_BOUND 15		// 更优货物扩展寻找幅度
 
-#define PACKET_VALUE_THRESHOLD 120	// 最低接受货物价值
+#define PACKET_VALUE_THRESHOLD 175	// 最低接受货物价值
 
 #define ARRIVE_PACKET_OFFSET 50		// 取货时间偏移
 
